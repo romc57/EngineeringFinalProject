@@ -5,15 +5,41 @@ LEFT_KNEE = 11
 RIGHT_KNEE = 11
 
 
+# Todo : To center the photo and move the data to 3d.
+
 def recognize_start_of_movement(mat_of_elements, frames_lst, exercise):
-    """Will cut the lines of the matrix before movement for each exercise"""
-    for i in range(1,len(mat_of_elements)):
+    """
+    The next method Will cut the lines of the matrix before movement for each exercise and return the index where
+     the decision was made.
+    :param mat_of_elements: list of lists of body parts location correspond to the dictionary in pose_estimation.py
+    :param frames_lst: the corresponds frames to the matrix.
+    :param exercise: the type of exercise in the video.
+    :return: mat_of_elements from the right point, frames corresponds, index.
+    """
+    for i in range(1, len(mat_of_elements)):
         if exercise == 'squat':
-            if mat_of_elements[i-1][LEFT_KNEE][0] > mat_of_elements[i][LEFT_KNEE][0] + 10 or mat_of_elements[i-1][RIGHT_KNEE][0]\
-                    > mat_of_elements[i][RIGHT_KNEE][0] + 10:
-                return mat_of_elements[i - 1::], frames_lst[i - 1::]
+            if mat_of_elements[i - 1][LEFT_KNEE][0] > mat_of_elements[i][LEFT_KNEE][0] + 10 or \
+                    mat_of_elements[i - 1][RIGHT_KNEE][0] > mat_of_elements[i][RIGHT_KNEE][0] + 10:
+                return mat_of_elements[i - 1::], frames_lst[i - 1::], i
 
 
+def recognize_end_of_movement(mat_of_elements, frames_lst, exercise):
+    """
+
+    :param mat_of_elements:
+    :param frames_lst:
+    :param exercise:
+    :return:
+    """
+    for i in range(1, len(mat_of_elements)):
+        if exercise == 'squat':
+            pass
+
+
+
+def recognize_movement(mat_of_elements, frames_lst, exercise):
+    """Recognize full movement and return an array that each entrance is list of frames of a full movement"""
+    pass
 
 
 def build_matrix_for_nn(mat, tag, desired_shape, none_handle):
