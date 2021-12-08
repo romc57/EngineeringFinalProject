@@ -3,6 +3,8 @@ from pose_estimation import *
 
 LEFT_KNEE = 11
 RIGHT_KNEE = 11
+LEFT_HIP = 11
+RIGHT_HIP = 8
 
 
 # Todo : To center the photo and move the data to 3d.
@@ -18,8 +20,8 @@ def recognize_start_of_movement(mat_of_elements, frames_lst, exercise):
     """
     for i in range(1, len(mat_of_elements)):
         if exercise == 'squat':
-            if mat_of_elements[i - 1][LEFT_KNEE][0] > mat_of_elements[i][LEFT_KNEE][0] + 10 or \
-                    mat_of_elements[i - 1][RIGHT_KNEE][0] > mat_of_elements[i][RIGHT_KNEE][0] + 10:
+            if mat_of_elements[i - 1][LEFT_HIP][0] > mat_of_elements[i][LEFT_HIP][0] + 20 or \
+                    mat_of_elements[i - 1][RIGHT_HIP][0] > mat_of_elements[i][RIGHT_HIP][0] + 20:
                 return mat_of_elements[i - 1::], frames_lst[i - 1::], i
 
 
@@ -31,10 +33,17 @@ def recognize_end_of_movement(mat_of_elements, frames_lst, exercise):
     :param exercise:
     :return:
     """
-    for i in range(1, len(mat_of_elements)):
+    max_y = 1000
+    max_index = 0
+    for i in range(4, len(mat_of_elements)):
         if exercise == 'squat':
-            pass
-
+            if mat_of_elements[i][LEFT_HIP] is not None and max_y > mat_of_elements[i][LEFT_HIP][0]:
+                max_y = mat_of_elements[i][LEFT_HIP][0]
+                max_index = i
+            elif mat_of_elements[i][RIGHT_HIP] is not None and max_y > mat_of_elements[i][RIGHT_HIP][0]:
+                max_y = mat_of_elements[i][RIGHT_HIP][0]
+                max_index = i
+    return mat_of_elements[:max_index - 1], frames_lst[:max_index - 1], max_index
 
 
 def recognize_movement(mat_of_elements, frames_lst, exercise):
