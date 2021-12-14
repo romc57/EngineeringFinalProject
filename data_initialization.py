@@ -52,10 +52,9 @@ def recognize_movement(mat_of_elements, frames_lst, exercise):
     index_1 = 0
     index_2 = 0
     while index_2 < len(mat_of_elements):
-        a, b, index_1 = recognize_start_of_movement(mat_of_elements[index_2::],frames_lst[index_2::], 'squat')
-        a, b, index_2 = recognize_end_of_movement(mat_of_elements[index_1::],frames_lst[index_1::], 'squat')
+        a, b, index_1 = recognize_start_of_movement(mat_of_elements[index_2::], frames_lst[index_2::], exercise)
+        a, b, index_2 = recognize_end_of_movement(mat_of_elements[index_1::], frames_lst[index_1::], exercise)
         movements_lst.append(mat_of_elements[index_1:index_2])
-
 
 
 def build_matrix_for_nn(mat, tag, desired_shape, none_handle):
@@ -67,5 +66,3 @@ def create_data_set(directory, tags, none_handle):
     """Multi video, expect a path includes videos array of tags who are matched the video, or dictionary,
     none handle build matrix for nn"""
     pass
-
-
