@@ -61,7 +61,7 @@ def create_run_dir():
     name = "run_{}_{}".format(cur_string_date, cur_string_time)
     run_dir_path = os.path.join(output_dir, name)
     os.mkdir(run_dir_path)
-    output_directories = ['centered_plots', 'vision_plots', 'img_samples']
+    output_directories = ['centered_plots', 'vision_plots', 'img_samples', 'centered_points']
     for out_dir in output_directories:
         path = os.path.join(run_dir_path, out_dir)
         os.mkdir(path)
@@ -73,5 +73,23 @@ def rotate_point(point, radians):
     xx = x * math.cos(radians) + y * math.sin(radians)
     yy = -x * math.sin(radians) + y * math.cos(radians)
     return round(xx, 3), round(yy, 3)
+
+
+def write_to_txt_points(points, run_dir, file_name):
+    out = list()
+    for point in points:
+        if point:
+            out.append(point)
+    file_path = os.path.join(run_dir, 'centered_points', file_name)
+    with open(file_path, 'w') as writer:
+        writer.write(str(out))
+
+
+def load_txt_point(run_dir, file_name):
+    file_path = os.path.join(run_dir, 'centered_points', file_name)
+    with open(file_path, 'r') as reader:
+        points = eval(reader.read())
+    return points
+
 
 
