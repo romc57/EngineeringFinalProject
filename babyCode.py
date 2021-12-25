@@ -4,10 +4,11 @@ import cv2 as cv
 import numpy as np
 import argparse
 import tests
+from main import plot_points
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', help='Path to image or video. Skip to capture frames from camera')
-parser.add_argument('--thr', default=0.2, type=float, help='Threshold value for pose parts heat map')
+parser.add_argument('--thr', default=0.4, type=float, help='Threshold value for pose parts heat map')
 parser.add_argument('--width', default=368, type=int, help='Resize input to specific width.')
 parser.add_argument('--height', default=368, type=int, help='Resize input to specific height.')
 
@@ -58,10 +59,18 @@ def get_hip_angle(point_list):
 
 def print_points(point_list):
     output = 'Detected:'
+    present_points = None not in point_list
+    label_list = list()
     for i in range(len(point_list)):
-        if points[i]:
-            output += BODY_PARTS_LIST[i] if (i == len(point_list) - 1) else '{}, '.format(BODY_PARTS_LIST[i])
-    print(output)
+        if present_points:
+            output += "{}: {}".format(BODY_PARTS_LIST[i], point_list[i])
+            label_list.append(BODY_PARTS_LIST[i])
+        # else:
+        #     if points[i]:
+        #         output += BODY_PARTS_LIST[i] if (i == len(point_list) - 1) else '{}, '.format(BODY_PARTS_LIST[i])
+    if present_points:
+        plot_points(point_list, label_list)
+        print(output)
 
 
 inWidth = args.width
@@ -70,8 +79,8 @@ inHeight = args.height
 net = cv.dnn.readNetFromTensorflow("graph_opt.pb")
 
 cap = cv.VideoCapture(args.input if args.input else 0)
-fourcc = cv.VideoWriter_fourcc(*'MP4V')
-output = cv.VideoWriter('output.mp4', fourcc, 10.0, (640,480))
+#fourcc = cv.VideoWriter_fourcc(*'MP4V')
+#output = cv.VideoWriter('output.mp4', fourcc, 10.0, (640,480))
 
 while cv.waitKey(1) < 0:
     hasFrame, frame = cap.read()
@@ -119,20 +128,22 @@ while cv.waitKey(1) < 0:
     t, _ = net.getPerfProfile()
     freq = cv.getTickFrequency() / 1000
     cv.putText(frame, '%.2fms' % (t / freq), (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
-    # print_points(points)
-    ankle_ang = get_ankle_angle(points)
-    if ankle_ang:
-        cv.putText(frame, ' {} deg'.format(ankle_ang), points[BODY_PARTS['LAnkle']], cv.FONT_HERSHEY_SIMPLEX, 0.8,
-                   (255, 255, 255))
-    knee_ang = get_knee_angle(points)
-    if knee_ang:
-        cv.putText(frame, ' {} deg'.format(knee_ang), points[BODY_PARTS['LKnee']], cv.FONT_HERSHEY_SIMPLEX, 0.8,
-                   (255, 255, 255))
-    hip_ang = get_hip_angle(points)
-    if hip_ang:
-        cv.putText(frame, ' {} deg'.format(hip_ang), points[BODY_PARTS['LHip']], cv.FONT_HERSHEY_SIMPLEX, 0.8,
-                   (255, 255, 255))
+    print_points(points)
+    # ankle_ang = get_ankle_angle(points)
+    # if ankle_ang:
+    #     cv.putText(frame, ' {} deg'.format(ankle_ang), points[BODY_PARTS['LAnkle']], cv.FONT_HERSHEY_SIMPLEX, 0.8,
+    #                (255, 255, 255))
+    # knee_ang = get_knee_angle(points)
+    # if knee_ang:
+    #     cv.putText(frame, ' {} deg'.format(knee_ang), points[BODY_PARTS['LKnee']], cv.FONT_HERSHEY_SIMPLEX, 0.8,
+    #                (255, 255, 255))
+    # hip_ang = get_hip_angle(points)
+    # if hip_ang:
+    #     cv.putText(frame, ' {} deg'.format(hip_ang), points[BODY_PARTS['LHip']], cv.FONT_HERSHEY_SIMPLEX, 0.8,
+    #                (255, 255, 255))
     cv.imshow('OpenPose using OpenCV', frame)
-    output.write(frame)
-output.release()
+ #   output.write(frame)
+#output.release()
+cap.release()
+cv.destroyAllWindows()
 
