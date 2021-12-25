@@ -76,13 +76,9 @@ def rotate_point(point, radians):
 
 
 def write_to_txt_points(points, run_dir, file_name):
-    out = list()
-    for point in points:
-        if point:
-            out.append(point)
     file_path = os.path.join(run_dir, 'centered_points', file_name)
     with open(file_path, 'w') as writer:
-        writer.write(str(out))
+        writer.write(str(points))
 
 
 def load_txt_point(run_dir, file_name):
