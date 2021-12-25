@@ -1,4 +1,4 @@
-from utils import get_2d_distance, plot_points, print_points, rotate_point
+from utils import get_2d_distance, plot_points, print_points, rotate_point, write_to_txt_points
 import copy
 import math
 
@@ -7,6 +7,9 @@ Y = 1
 
 BODY_PARTS_LIST = ['Nose', 'Neck', 'RShoulder', 'RElbow', 'RWrist', 'LShoulder', 'LElbow', 'LWrist', 'RHip', 'RKnee',
                    'RAnkle', 'LHip', 'LKnee', 'LAnkle', 'REye', 'LEye', 'REar', 'LEar', 'Background']
+
+BODY_PARTS_LIST_CLASS = ['Nose', 'Neck', 'RShoulder', 'LShoulder', 'RHip', 'RKnee', 'RAnkle', 'LHip', 'LKnee',
+                         'LAnkle', 'REye', 'LEye', 'REar', 'LEar']
 
 BODY_PARTS_MAP_INDEX = {"Nose": 0, "Neck": 1, "RShoulder": 2, "RElbow": 3, "RWrist": 4,
                         "LShoulder": 5, "LElbow": 6, "LWrist": 7, "RHip": 8, "RKnee": 9,
@@ -142,17 +145,15 @@ class Body:
 
     def get_class_points_list(self):
         output = list()
-        for i, body_part in enumerate(BODY_PARTS_LIST):
-            if i in self.ignore_indexes:
-                output.append(None)
-            else:
-                output.append(self.class_body_points_centered[body_part])
+        for body_part in BODY_PARTS_LIST_CLASS:
+            output.append(self.class_body_points_centered[body_part])
         return output
 
     def output_points(self):
         point_list = self.get_class_points_list()
-        print_points(point_list, BODY_PARTS_LIST)
-        plot_points(point_list, BODY_PARTS_LIST, 'Centered body points - frame={}'.format(self.frame_index),
+        print_points(point_list, BODY_PARTS_LIST_CLASS)
+        write_to_txt_points(point_list, self.run_dir, 'centered_points_id_{}'.format(self.frame_index))
+        plot_points(point_list, BODY_PARTS_LIST_CLASS, 'Centered body points - frame={}'.format(self.frame_index),
                     self.run_dir, 'centered_idx_{}'.format(self.frame_index), 'centered_plots')
 
     def center_r_ankle(self):

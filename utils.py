@@ -75,3 +75,24 @@ def rotate_point(point, radians):
     return round(xx, 3), round(yy, 3)
 
 
+def write_to_txt_points(points, run_dir, file_name):
+    file_path = os.path.join(run_dir, 'centered_points', file_name)
+    with open(file_path, 'w') as writer:
+        writer.write(str(points))
+
+
+def load_txt_point(run_dir, file_name):
+    file_path = os.path.join(run_dir, 'centered_points', file_name)
+    with open(file_path, 'r') as reader:
+        points = eval(reader.read())
+    return points
+
+
+
+def get_standing_line(width, height, height_fraction, line_fraction):
+    middle_frame = width / 2
+    height_position = height - (height * height_fraction)
+    fraction_width = width * line_fraction
+    f_point = (int(math.floor(middle_frame - (fraction_width / 2))), int(math.floor(height_position)))
+    s_point = (int(math.floor(middle_frame + (fraction_width / 2))), int(math.floor(height_position)))
+    return f_point, s_point
