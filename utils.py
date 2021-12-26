@@ -88,4 +88,21 @@ def load_txt_point(run_dir, file_name):
     return points
 
 
+def get_data_set(run_dir, folder_name):
+    data = list()
+    for directory in os.listdir(run_dir):
+        curr_data = list()
+        path = os.path.join(run_dir, directory)
+        for file in os.listdir(os.path.join(run_dir, directory, folder_name)):
+            curr_data.append(load_txt_point(path, file))
+        data.append(curr_data)
+    return data
+
+if __name__ == '__main__':
+    get_data_set('run_dir', 'centered_points')
+
+
+
+
+
 
