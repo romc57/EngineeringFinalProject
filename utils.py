@@ -98,9 +98,6 @@ def get_data_set(run_dir, folder_name):
         data.append(curr_data)
     return data
 
-if __name__ == '__main__':
-    get_data_set('run_dir', 'centered_points')
-
 
 
 
