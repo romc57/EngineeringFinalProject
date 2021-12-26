@@ -4,12 +4,14 @@ import torch.nn as nn
 import torch.optim as optim
 import tqdm
 import pickle
+import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 import os
 import sys
 
 DIM = 50
 NUM_MODEL = 0
+
 
 class SimpleKNN:
     def __int__(self, num_neighbors):
@@ -82,6 +84,14 @@ def train_model(model, data_manager, n_epochs, learning_rate,model_to_read = Non
     model_file.close()
 
 
-def evaluate():
-    pass
+
+def evaluate(model, data_iterator, criterion):
+    lost = list()
+    for data in data_iterator:
+        input, label = data
+        output = model(input)
+        lost_calc = criterion(output.reshape(output.shape[0]), label)
+        lost.append(lost_calc.item())
+    return np.mean(np.array(lost))
+
 
