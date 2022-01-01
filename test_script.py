@@ -1,3 +1,6 @@
+import numpy as np
+import torch
+
 from utils import  get_data_set
 from model_network import *
 # import tensorflow as tf
@@ -5,7 +8,7 @@ from model_network import *
 
 if __name__ == '__main__':
     data = get_data_set(r'run_dir', 'centered_points')
-
+    tags = [1,1]
     data_knn = np.array(data)
     model = SimpleKNN(1)
     data_knn = data_knn.reshape(len(data_knn) , -1)
@@ -24,5 +27,12 @@ if __name__ == '__main__':
     # test_loss, test_acc = model.evaluate(data_net, np.array([1,1]))
     # print(test_loss)
     # print(test_acc)
+
+    data_manager = DataManager(torch.tensor(data), torch.tensor(tags))
+    data_net = data_manager.get_data_iterator()
+    model_net = LinearNeuralNet()
+    train_model(model_net, data_manager, 20, 0.01,weight_decay=0.01)
+    print(evaluate(model_net, data_net, nn.L1Loss()))
+
 
     print('debug!')
