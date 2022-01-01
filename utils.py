@@ -8,7 +8,7 @@ X = 0
 Y = 1
 Z = 2
 
-BODY_PARTS_LIST_CLASS = ['Nose', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee', 'RAnkle', 'LAnkle',
+BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee', 'RAnkle', 'LAnkle',
                          'RHeel', 'LHeel', 'RTows', 'LTows']
 
 
@@ -119,8 +119,7 @@ def create_run_dir():
     name = "run_{}_{}".format(cur_string_date, cur_string_time)
     run_dir_path = os.path.join(output_dir, name)
     os.mkdir(run_dir_path)
-    output_directories = ['centered_plots', 'vision_plots', 'img_samples', 'three_d_points', 'centered_points',
-                          'profile_plots']
+    output_directories = ['centered_plots', 'img_samples', 'three_d_points', 'centered_points', 'profile_plots']
     for out_dir in output_directories:
         path = os.path.join(run_dir_path, out_dir)
         os.mkdir(path)

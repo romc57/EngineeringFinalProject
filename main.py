@@ -8,10 +8,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--input', help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
-parser.add_argument('--save', default=True, type=bool, help='Save the video output')
+parser.add_argument('--save', default=False, type=bool, help='Save the video output')
 
 INSTRUCTIONS_COLOR = (0, 0, 0)
 COUNTER_COLOR = (0, 0, 0)
+EXIT_COLOR = (0, 0, 255)
+ON_LINE_COLOR = (255, 0, 0)
+OFF_LINE_COLOR = (0, 0, 255)
 
 
 args = parser.parse_args()
@@ -40,9 +43,9 @@ squat_count = 0
 def draw_standing_line(frame, standing_line):
     if standing_line:
         if user_body.on_standing_line():
-            cv.line(frame, standing_line[0], standing_line[1], (255, 0, 0), 2)
+            cv.line(frame, standing_line[0], standing_line[1], ON_LINE_COLOR, 2)
         else:
-            cv.line(frame, standing_line[0], standing_line[1], (0, 0, 255), 2)
+            cv.line(frame, standing_line[0], standing_line[1], OFF_LINE_COLOR, 2)
 
 
 def insert_instructions(frame, txt):
@@ -58,6 +61,8 @@ def insert_squat_count(frame):
 
 def show_img(frame, save_frame=True):
     global frame_counter
+    width, height = frame.shape[1], frame.shape[0]
+    cv.putText(frame, 'To quit press q', (width - 150, height - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, EXIT_COLOR, 2)
     resized = cv.resize(frame, (display_width, display_height))
     cv.imshow('OpenPose using OpenCV', resized)
     if save_frame:
@@ -82,13 +87,6 @@ def get_points(frame):
             standing_line_points = utils.get_standing_line(w, h, 0.07, 0.35)
             user_body.set_standing_line(standing_line_points, (w, h))
     return points, results
-
-
-def out_put_vision_data(points):
-    global run_dir, frame_counter, user_body
-    utils.print_points(points, BODY_PARTS_LIST)
-    utils.plot_points(points, BODY_PARTS_LIST, 'Vision point format frame={}'.format(frame_counter), run_dir,
-                      'vision_plots_id_{}'.format(frame_counter), 'vision_plots')
 
 
 def calibrate_mode(frame, points, results):
@@ -163,4 +161,6 @@ if output:
     output.release()
 cap.release()
 cv.destroyAllWindows()
+print('Outputing data...')
+user_body.output_points()
 
