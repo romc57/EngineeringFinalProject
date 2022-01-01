@@ -82,16 +82,16 @@ class Body:
     def squat(self):
         cur_height = self.__frame_sizes[Y] - self.class_body_points['Nose'][Y]  # Current user height
         if len(self.__cur_squat_frames) == 0:  # The beginning of the squat
-            if abs(cur_height - self.__user_height_in_pixel) < 10:  # If the user is standing - beginning of movement
+            if abs(cur_height - self.__user_height_in_pixel) < 20:  # If the user is standing - beginning of movement
                 self.__cur_squat_frames.append(copy.deepcopy(self.class_body_points))  # Add capture to squat list
                 self.__cur_lowest_squat_point = self.__frame_sizes[Y] - self.class_body_points['Nose'][Y]  # Set min
                 return False  # Continue movement
             else:  # If the user is not standing
                 return False  # Don't create a squat set yet
         print('User height ratio {}'.format(abs(cur_height - self.__user_height_in_pixel)))
-        if abs(cur_height - self.__user_height_in_pixel) < 40:  # End or beginning of movement
+        if abs(cur_height - self.__user_height_in_pixel) < 20:  # End or beginning of movement
             print('User lowest point ratio {}'.format(abs(self.__cur_lowest_squat_point - self.__lowest_squat_point)))
-            if abs(self.__cur_lowest_squat_point - self.__lowest_squat_point) < 40:  # if End - got the low already
+            if self.__cur_lowest_squat_point - self.__lowest_squat_point < 10:  # if End - got the low already
                 self.__cur_lowest_squat_point = None  # Reset the lowest point
                 self.valid_points_list.append(copy.deepcopy(self.__cur_squat_frames))  # Add squat list to list of squats
                 self.__cur_squat_frames = list()  # Reset the current squat list
