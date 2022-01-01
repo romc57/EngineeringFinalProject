@@ -114,3 +114,21 @@ def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
         acc_train = np.sum(y_hat_train == train_tags) / len(train_tags)
         acc_test = np.sum(y_hat_test == test_tags) / len(test_tags)
         print(f'train accuracy = {acc_train}, test accuracy =  {acc_test}')
+
+
+def binary_accuracy(preds, y):
+    """
+    This method returns tha accuracy of the predictions, relative to the labels.
+    You can choose whether to use numpy arrays or tensors here.
+    :param preds: a vector of predictions
+    :param y: a vector of true labels
+    :return: scalar value - (<number of accurate predictions> / <number of examples>)
+    """
+    round_preds = -torch.ones(preds.shape[0])
+    round_y = -torch.ones(y.shape[0])
+    round_preds[preds >= 0.6] = 1
+    round_y[y >= 0.6] = 1
+    round_preds[preds <= 0.4] = 0
+    round_y[y <= 0.4] = 0
+    accuracy = round_preds == round_y
+    return torch.mean(accuracy.float())

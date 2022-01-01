@@ -32,7 +32,7 @@ if __name__ == '__main__':
     data_net = data_manager.get_data_iterator()
     model_net = LinearNeuralNet()
     train_model(model_net, data_manager, 20, 0.01,weight_decay=0.01)
-    print(evaluate(model_net, data_net, nn.L1Loss()))
+    print(evaluate(model_net, data_net, binary_accuracy))
 
 
     print('debug!')
