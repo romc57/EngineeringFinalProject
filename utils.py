@@ -8,19 +8,45 @@ X = 0
 Y = 1
 Z = 2
 
-points_example = [(333, 10), (333, 73), (278, 83), (389, 73), (361, 271), (306, 396), (417, 302), (292, 260),
-                  (361, 396), (417, 302), (333, 0), (347, 0), (306, 10), (361, 10)]
+BODY_PARTS_LIST_CLASS = ['Nose', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee', 'RAnkle', 'LAnkle',
+                         'RHeel', 'LHeel', 'RTows', 'LTows']
 
-BODY_PARTS_LIST = ['Nose', 'Neck', 'RShoulder', 'RElbow', 'RWrist', 'LShoulder', 'LElbow', 'LWrist', 'RHip', 'RKnee',
-                   'RAnkle', 'LHip', 'LKnee', 'LAnkle', 'REye', 'LEye', 'REar', 'LEar', 'Background']
 
-BODY_PARTS_LIST_CLASS = ['Nose', 'Neck', 'RShoulder', 'LShoulder', 'RHip', 'RKnee', 'RAnkle', 'LHip', 'LKnee',
-                         'LAnkle', 'REye', 'LEye', 'REar', 'LEar']
+BODY_PARTS_LIST = ['Nose', 'REye_l', 'REye_c', 'REye_r', 'LEye_r', 'LEye_c', 'LEye_l', 'RCheek', 'LCheek', 'RLip',
+                   'LLip', 'RShoulder', 'LShoulder', 'RElbow', 'LElbow', 'RWrist', 'LWrist', 'RHand_r', 'LHand_l',
+                   'RHand_c', 'LHand_c', 'RHand_l', 'LHand_r', 'RHip', 'LHip', 'RKnee', 'LKnee', 'RAnkle', 'LAnkle',
+                   'RHeel', 'LHeel', 'RTows', 'LTows']
 
-POSE_PAIRS_CLASS = [["Neck", "RShoulder"], ["Neck", "LShoulder"], ["Neck", "RHip"], ["RHip", "RKnee"],
-                    ["RKnee", "RAnkle"], ["Neck", "LHip"], ["LHip", "LKnee"], ["LKnee", "LAnkle"], ["Neck", "Nose"],
-                    ["Nose", "REye"], ["REye", "REar"], ["Nose", "LEye"], ["LEye", "LEar"]]
+POSE_PAIRS = [(0, 1), (1, 2), (2, 3), (3, 7), (0, 4), (4, 5), (5, 6), (6, 8), (9, 10), (11, 12), (11, 13), (13, 15),
+              (15, 17), (15, 19), (15, 21), (17, 19), (12, 14), (14, 16), (16, 18), (16, 20), (16, 22), (18, 20),
+              (11, 23), (12, 24), (23, 24), (23, 25), (24, 26), (25, 27), (26, 28), (27, 29), (28, 30), (29, 31),
+              (30, 32), (27, 31), (28, 32)]
 
+BODY_PARTS_MAP_INDEX = {'Nose': 0, 'REye_l': 1, 'REye_c': 2, 'REye_r': 3, 'LEye_r': 4, 'LEye_c': 5, 'LEye_l': 6,
+                        'RCheek': 7, 'LCheek': 8, 'RLip': 9, 'LLip': 10, 'RShoulder': 11, 'LShoulder': 12, 'RElbow': 13,
+                        'LElbow': 14, 'RWrist': 15, 'LWrist': 16, 'RHand_r': 17, 'LHand_l': 18, 'RHand_c': 19,
+                        'LHand_c': 20, 'RHand_l': 21, 'LHand_r': 22, 'RHip': 23, 'LHip': 24, 'RKnee': 25, 'LKnee': 26,
+                        'RAnkle': 27, 'LAnkle': 28, 'RHeel': 29, 'LHeel': 30, 'RTows': 31, 'LTows': 32}
+
+INSTRUCTIONS = {
+    'keep_still': "Keep still",
+    'heels_not_horizontal': "Make sure your are faced to the camera standing straight\nand the camera is positioned "
+                             "horizontal to the ground",
+    'heels_not_horizontal_in_motion': 'Make sure you are facing straight to the camera and the camera is positioned '
+                                       'horizontal to the floor',
+    'calibrated': 'Done',
+    'invalid_points': 'Points are not right',
+    'standing_line': 'Please stand on the standing line',
+    'missing_points': 'Missing some needed points'
+}
+
+
+def get_ignored_indexes(full_list, class_list):
+    output = list()
+    for idx, part in enumerate(full_list):
+        if part not in class_list:
+            output.append(idx)
+    return output
 
 def plot_points(point_list, label_list, title, out_dir, file_name, file_dir):
     x = list()
@@ -41,7 +67,7 @@ def plot_points(point_list, label_list, title, out_dir, file_name, file_dir):
     plt.xlim((int(min_x) - 100, int(max_x) + 100))
     plt.ylim((int(min_y) - 100, int(max_y) + 100))
     for i, txt in enumerate(labels):
-        if 'L' in txt:
+        if txt[0] == 'L':
             plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i] - 100, y[i]))
         else:
             plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i]))
@@ -69,7 +95,7 @@ def plot_profile_points(point_list, label_list, title, out_dir, file_name, file_
     plt.xlim((int(min_x) - 100, int(max_x) + 100))
     plt.ylim((int(min_y) - 100, int(max_y) + 100))
     for i, txt in enumerate(labels):
-        if 'L' in txt:
+        if txt[0] == 'L':
             plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i] + 5))
         else:
             plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i] - 5))
@@ -143,6 +169,4 @@ def get_standing_line(width, height, height_fraction, line_fraction):
 
 
 if __name__ == '__main__':
-    frame_data = load_txt_point(r'C:\Users\Rom Cohen\PycharmProjects\EngineeringFinalProject\run_dir\run_20211226_15415'
-                                r'3', 'three_d_points_id_76.txt', 'three_d_points')
-    plot_profile_points(frame_data, BODY_PARTS_LIST_CLASS)
+    print(get_ignored_indexes(BODY_PARTS_LIST, BODY_PARTS_LIST_CLASS))
