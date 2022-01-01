@@ -14,7 +14,7 @@ NUM_MODEL = 0
 
 
 class SimpleKNN:
-    def __int__(self, num_neighbors):
+    def __init__(self, num_neighbors):
         self._neighbors = num_neighbors
         self.model = KNeighborsClassifier(self._neighbors)
 
