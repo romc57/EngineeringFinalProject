@@ -43,7 +43,7 @@ def plot_points(point_list, label_list, title, out_dir, file_name, file_dir):
             plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i]))
     file_path = os.path.join(out_dir, file_dir, file_name)
     plt.savefig(file_path, bbox_inches='tight')
-    plt.show()
+    # plt.show()
     plt.clf()
 
 
@@ -99,6 +99,11 @@ def get_data_set(run_dir, folder_name):
     return data
 
 
+def get_data_for_knn(run_dir, folder_name):
+    data = get_data_set(run_dir, folder_name)
+    data_knn = np.array(data)
+    data_knn = data_knn.reshape(len(data_knn), -1)
+    return data_knn
 
 
 

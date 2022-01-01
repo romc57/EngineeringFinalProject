@@ -24,7 +24,6 @@ class SimpleKNN:
     def predict(self, data):
         return self.model.predict(data)
 
-
 class LinearNeuralNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -95,3 +94,11 @@ def evaluate(model, data_iterator, criterion):
     return np.mean(np.array(lost))
 
 
+def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
+    model.train_model(train_set, train_tags)
+    y_hat_train = model.predict(train_set)
+    y_hat_test = model.predict(test_set)
+    if method == 'accuracy':
+        acc_train = np.sum(y_hat_train == train_tags) / len(train_tags)
+        acc_test = np.sum(y_hat_test == test_tags) / len(test_tags)
+        print(f'train accuracy = {acc_train}, test accuracy =  {acc_test}')
