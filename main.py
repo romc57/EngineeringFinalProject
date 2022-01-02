@@ -10,7 +10,7 @@ parser.add_argument('--input', help='Path to image or video. Skip to capture fra
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
-parser.add_argument('--data_set_mode', default=False, type=bool, help='Mark true to create a dataset.')
+parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
 
 
 INSTRUCTIONS_COLOR = (0, 0, 0)
@@ -26,7 +26,7 @@ run_dir = utils.create_run_dir()
 if data_set_mode:
     data_types = ['good', 'bad']
     type_index = 0
-    sample_count = 1
+    sample_count = 20
     user_body = Body(run_dir, data_types[0])
 else:
     user_body = Body(run_dir)
@@ -148,7 +148,10 @@ def run(frame, points, results):
         if user_body.squat():
             squat_count += 1
         mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
-        show_img(frame, save_frame=True)
+        if data_set_mode:
+            show_img(frame, save_frame=False)
+        else:
+            show_img(frame, save_frame=True)
     else:
         insert_instructions(frame, instruction)
         insert_squat_count(frame)
