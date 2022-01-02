@@ -26,7 +26,7 @@ run_dir = utils.create_run_dir()
 if data_set_mode:
     data_types = ['good', 'bad']
     type_index = 0
-    sample_count = 20
+    sample_count = 5
     user_body = Body(run_dir, data_types[0])
 else:
     user_body = Body(run_dir)
@@ -180,6 +180,7 @@ def data_set_creator(frame, points, results):
 
 while cv.waitKey(1) < 0:
     hasFrame, frame = cap.read()
+    frame_counter += 1
     if not hasFrame:
         cv.waitKey()
         break
@@ -198,7 +199,6 @@ while cv.waitKey(1) < 0:
                 continue
         else:
             run(frame, points, results)
-    frame_counter += 1
 if output:
     output.release()
 cap.release()

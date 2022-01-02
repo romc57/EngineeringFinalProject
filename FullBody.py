@@ -241,8 +241,9 @@ class Body:
     def output_data_set_points(self):
         self.__get_body_lengths()
         for squat_points in self.valid_points_list:
-            three_d, centered = list(), list()
-            start_frame, end_frame = squat_points[0]['frame_idx'], squat_points[-1]['frame_idx']
+            three_d = list()
+            centered = list()
+            start_frame = squat_points[-1]['frame_idx']
             for points in squat_points:
                 self.class_body_points = copy.deepcopy(points)
                 self.center_r_heel()
@@ -258,7 +259,11 @@ class Body:
             write_to_txt_points('\n'.join(str(dots) for dots in three_d), 'training_data_set',
                                 'three_d_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
                                 'three_d_points/{}'.format(self.training_dir))
-        self.class_body_points, self.class_body_points_3d, self.class_body_points_centered = None, None, None
+            three_d = None
+            centered = None
+        self.class_body_points = None
+        self.class_body_points_3d = None
+        self.class_body_points_centered = None
 
     def center_r_heel(self):
         self.class_body_points_centered = dict()
