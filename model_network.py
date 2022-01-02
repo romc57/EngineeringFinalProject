@@ -1,5 +1,4 @@
 from abc import ABC
-
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 import torch
@@ -9,10 +8,7 @@ import tqdm
 import pickle
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
-import os
-import sys
 
-DIM = 945
 NUM_MODEL = 0
 
 
@@ -29,11 +25,11 @@ class SimpleKNN:
 
 
 class LinearNeuralNet(nn.Module):
-    def __init__(self):
+    def __init__(self, dim):
         super().__init__()
         self.layers = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(DIM, 1),
+            nn.Linear(dim, 1),
             nn.Sigmoid()
         )
 
