@@ -6,7 +6,7 @@ import mediapipe as mp
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', help='Path to image or video. Skip to capture frames from camera')
+parser.add_argument('--input', default=0, help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
