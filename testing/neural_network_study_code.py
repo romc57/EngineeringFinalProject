@@ -1,7 +1,4 @@
-import numpy as np
-from pose_estimation import *
-from data_initialization import *
-from model_network import *
+from testing.data_initialization import *
 
 VIDEO = r'C:\Users\Roy\PycharmProjects\IML\FInalProject\pexels-mart-production-8836896.mp4'
 
