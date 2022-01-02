@@ -1,19 +1,19 @@
 import numpy as np
 import torch
 
-from utils import  get_data_set
+from utils import  get_data_set, normalize_data_len
 from model_network import *
 # import tensorflow as tf
 
 
 if __name__ == '__main__':
-    data = get_data_set(r'run_dir', 'centered_points')
-    tags = [1,1]
+    data, tags = get_data_set(r'training_data_set', r'three_d_points')
+    data = normalize_data_len(data)
     data_knn = np.array(data)
-    model = SimpleKNN(1)
+    model = SimpleKNN(2)
     data_knn = data_knn.reshape(len(data_knn) , -1)
-    fit = model.train_model(data_knn, [1, 1])
-    tag = model.predict(data_knn)
+    fit = model.train_model(data_knn[:6], tags[:6])
+    tag = model.predict([data_knn[5]])
     print(tag)
 
     # data_net = np.array(data)

@@ -8,9 +8,9 @@ X = 0
 Y = 1
 Z = 2
 
-BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee', 'RAnkle', 'LAnkle',
+BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee',
+                         'RAnkle', 'LAnkle',
                          'RHeel', 'LHeel', 'RTows', 'LTows']
-
 
 BODY_PARTS_LIST = ['Nose', 'REye_l', 'REye_c', 'REye_r', 'LEye_r', 'LEye_c', 'LEye_l', 'RCheek', 'LCheek', 'RLip',
                    'LLip', 'RShoulder', 'LShoulder', 'RElbow', 'LElbow', 'RWrist', 'LWrist', 'RHand_r', 'LHand_l',
@@ -31,9 +31,9 @@ BODY_PARTS_MAP_INDEX = {'Nose': 0, 'REye_l': 1, 'REye_c': 2, 'REye_r': 3, 'LEye_
 INSTRUCTIONS = {
     'keep_still': "Keep still",
     'heels_not_horizontal': "Make sure your are faced to the camera standing straight\nand the camera is positioned "
-                             "horizontal to the ground",
+                            "horizontal to the ground",
     'heels_not_horizontal_in_motion': 'Make sure you are facing straight to the camera and the camera is positioned '
-                                       'horizontal to the floor',
+                                      'horizontal to the floor',
     'calibrated': 'Done',
     'invalid_points': 'Points are not right',
     'standing_line': 'Please stand on the standing line',
@@ -155,7 +155,9 @@ def write_to_txt_points(points, run_dir, file_name, dir_name):
 def load_txt_point(run_dir, file_name, dir_name):
     file_path = os.path.join(run_dir, dir_name, file_name)
     with open(file_path, 'r') as reader:
-        points = eval(reader.read())
+        text = reader.read()
+        text = text.replace('\n', ',')
+        points = eval(text)
     return points
 
 
@@ -166,3 +168,68 @@ def get_standing_line(width, height, height_fraction, line_fraction):
     f_point = (int(math.floor(middle_frame - (fraction_width / 2))), int(math.floor(height_position)))
     s_point = (int(math.floor(middle_frame + (fraction_width / 2))), int(math.floor(height_position)))
     return f_point, s_point
+
+
+def get_data_set(directory, folder_name):
+    output_data = list()
+    output_labels = list()
+    path = os.path.join(directory, folder_name)
+    for folder in os.listdir(path):
+        for file in os.listdir(os.path.join(path, folder)):
+            curr_data = load_txt_point(path, file, folder)
+            output_data.append(curr_data)
+            if folder == 'bad':
+                output_labels.append(0)
+            elif folder == 'good':
+                output_labels.append(1)
+    return output_data, output_labels
+
+
+def find_min_len(data_set):
+    min_len = 1000
+    for video_frames in data_set:
+        curr_len = len(video_frames)
+        if curr_len < min_len:
+            min_len = curr_len
+    return min_len
+
+
+def find_min_y_index(frames):
+    head_y_position = frames[:, 0, 1]
+    return np.where(head_y_position == np.amin(head_y_position))[0]
+
+
+def find_slicing_indices(wanted_len, min_move, frames_len):
+    if wanted_len % 2 == 0:
+        move_down_size = np.floor(wanted_len / 2).astype(np.int64)
+        move_up_size = move_down_size
+    else:
+        move_up_size = np.floor(wanted_len / 2).astype(np.int64)
+        move_down_size = wanted_len - move_up_size
+    indices_down = np.linspace(0, min_move, num=move_down_size).astype(np.int64)
+    indices_up = np.linspace(min_move + 1, frames_len - 1, num=move_up_size).astype(np.int64)
+    return np.concatenate([indices_down, indices_up])
+
+
+def normalize_data_len(data_set):
+    output_data = list()
+    min_len = find_min_len(data_set)
+    for video_frames in data_set:
+        curr_len = len(video_frames)
+        video_frames = np.array(video_frames)
+        if curr_len == min_len:
+            output_data.append(video_frames)
+            continue
+        if min_len < curr_len:
+            min_index = find_min_y_index(video_frames)
+            slicing_indices = find_slicing_indices(min_len, min_index[0], curr_len)
+            video_frames_new = video_frames[slicing_indices]
+            output_data.append(video_frames_new)
+    return output_data
+
+if __name__ == '__main__':
+    data, labels = get_data_set(r'training_data_set', r'three_d_points')
+    print(labels)
+    normal_data = normalize_data_len(data)
+    for data in normal_data:
+        print(len(data))

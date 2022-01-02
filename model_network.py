@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, TensorDataset, Dataset
 import os
 import sys
 
-DIM = 840
+DIM = 945
 NUM_MODEL = 0
 
 
@@ -69,6 +69,7 @@ def train_epoch(model, data_iterator, optimizer, criterion):
     loss = float(0)
     for i, data in enumerate(data_iterator):
         input, label = data
+        input = input.float()
         optimizer.zero_grad()
         output = model(input)
         lost_calc = criterion(output.reshape(output.shape[0]), label)
@@ -100,6 +101,7 @@ def evaluate(model, data_iterator, criterion):
     lost = list()
     for data in data_iterator:
         input, label = data
+        input = input.float()
         output = model(input)
         lost_calc = criterion(output.reshape(output.shape[0]), label)
         lost.append(lost_calc.item())
