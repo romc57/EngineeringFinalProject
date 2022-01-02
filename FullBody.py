@@ -2,11 +2,12 @@ from utils import get_2d_distance, plot_points, rotate_point, write_to_txt_point
     plot_profile_points, BODY_PARTS_LIST, BODY_PARTS_LIST_CLASS, INSTRUCTIONS, X, Y, Z, get_ignored_indexes
 import copy
 import math
+import datetime
 
 
 class Body:
 
-    def __init__(self, run_dir):
+    def __init__(self, run_dir, training_dir=None):
         self.run_dir = run_dir
         self.__standing_line_points = None
         self.__user_on_standing_line = False
@@ -29,6 +30,7 @@ class Body:
         self.sample_squat_mode = False
         self.__cur_squat_frames = list()
         self.__cur_lowest_squat_point = None
+        self.training_dir = training_dir
 
     def is_ready(self):
         return self.__ready
@@ -82,16 +84,16 @@ class Body:
     def squat(self):
         cur_height = self.__frame_sizes[Y] - self.class_body_points['Nose'][Y]  # Current user height
         if len(self.__cur_squat_frames) == 0:  # The beginning of the squat
-            if abs(cur_height - self.__user_height_in_pixel) < 20:  # If the user is standing - beginning of movement
+            if self.__user_height_in_pixel - 5 < cur_height:  # If the user is standing - beginning of movement
                 self.__cur_squat_frames.append(copy.deepcopy(self.class_body_points))  # Add capture to squat list
                 self.__cur_lowest_squat_point = self.__frame_sizes[Y] - self.class_body_points['Nose'][Y]  # Set min
                 return False  # Continue movement
             else:  # If the user is not standing
                 return False  # Don't create a squat set yet
         print('User height ratio {}'.format(abs(cur_height - self.__user_height_in_pixel)))
-        if abs(cur_height - self.__user_height_in_pixel) < 20:  # End or beginning of movement
+        if self.__user_height_in_pixel - 5 < cur_height:  # End or beginning of movement
             print('User lowest point ratio {}'.format(abs(self.__cur_lowest_squat_point - self.__lowest_squat_point)))
-            if self.__cur_lowest_squat_point - self.__lowest_squat_point < 10:  # if End - got the low already
+            if (self.__cur_lowest_squat_point - self.__lowest_squat_point) < 10:  # if End - got the low already
                 self.__cur_lowest_squat_point = None  # Reset the lowest point
                 self.valid_points_list.append(copy.deepcopy(self.__cur_squat_frames))  # Add squat list to list of squats
                 self.__cur_squat_frames = list()  # Reset the current squat list
@@ -185,9 +187,9 @@ class Body:
                                                                    self.__init_pose['RHip'])
         self.init_body_lengths['l_hip_shoulder'] = get_2d_distance(self.__init_pose['LShoulder'],
                                                                    self.__init_pose['LHip'])
-        mid_shoulder = (self.__init_pose['RShoulder'][X] + ((self.__init_pose['RShoulder'][X] -
-                                                             self.__init_pose['RShoulder'][X]) / 2),
-                        self.__init_pose['RShoulder'][Y])
+        mid_shoulder = (self.__init_pose['LShoulder'][X] + ((self.__init_pose['RShoulder'][X] -
+                                                             self.__init_pose['LShoulder'][X]) / 2),
+                        (self.__init_pose['RShoulder'][Y] + self.__init_pose['LShoulder'][Y]) / 2)
         self.init_body_lengths['shoulder_nose'] = get_2d_distance(mid_shoulder, self.__init_pose['Nose'])
 
     def get_network_point_format(self):
@@ -234,6 +236,16 @@ class Body:
                                 'centered_points_id_{}-{}.txt'.format(start_frame, end_frame), 'centered_points')
             write_to_txt_points('\n'.join(str(dots) for dots in three_d), self.run_dir,
                                 'three_d_points_id_{}-{}.txt'.format(start_frame, end_frame), 'three_d_points')
+            if self.training_dir:
+                cur_string_time = "".join(str(datetime.datetime.now()).split(" ")[1].split(".")[0].split(":"))
+                cur_string_date = "".join(str(datetime.datetime.now()).split(" ")[0].split("-")) + cur_string_time
+                write_to_txt_points('\n'.join(str(dots) for dots in centered), 'training_data_set',
+                                    'centered_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
+                                    'centered_points/{}'.format(self.training_dir))
+                write_to_txt_points('\n'.join(str(dots) for dots in three_d), 'training_data_set',
+                                    'three_d_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
+                                    'three_d_points/{}'.format(self.training_dir))
+        self.class_body_points, self.class_body_points_3d, self.class_body_points_centered = None, None, None
 
     def center_r_heel(self):
         self.class_body_points_centered = dict()
@@ -302,10 +314,10 @@ class Body:
                                                               get_z_coordinate(cur,
                                                                                self.init_body_lengths['l_hip_shoulder'],
                                                                                prev)])
-        mid_shoulder = (self.class_body_points_3d['RShoulder'][X] + ((self.class_body_points_3d['RShoulder'][X] -
+        mid_shoulder = (self.class_body_points_3d['RShoulder'][X] + ((self.class_body_points_3d['LShoulder'][X] -
                                                                       self.class_body_points_3d['RShoulder'][X]) / 2),
-                        self.class_body_points_3d['RShoulder'][Y], (self.class_body_points_3d['RShoulder'][Z] +
-                                                                    self.class_body_points_3d['LShoulder'][Z]) / 2)
+                        (self.class_body_points_3d['RShoulder'][Y] + self.class_body_points_3d['LShoulder'][Y]) / 2,
+                        (self.class_body_points_3d['RShoulder'][Z] + self.class_body_points_3d['LShoulder'][Z] / 2))
         prev = mid_shoulder
         cur = copy.deepcopy(self.class_body_points_centered['Nose'])
         self.class_body_points_3d['Nose'] = cur + tuple([mid_shoulder[Z] +
@@ -316,10 +328,10 @@ class Body:
         self.class_body_points_3d['LEye_c'] = self.class_body_points_centered['LEye_c'] + \
                                               tuple([self.class_body_points_3d['Nose'][Z]])
         self.class_body_points_3d['RTows'] = (self.class_body_points_centered['RTows'][X], 0) + \
-                                             tuple([get_z_coordinate(self.class_body_points_centered['RTows'],
-                                                                     self.__user_height_in_pixel * 0.125,
+                                             tuple([get_z_coordinate((self.class_body_points_centered['RTows'][X], 0),
+                                                                     self.__user_height_in_pixel * 0.12,
                                                                      self.class_body_points_centered['RHeel'])])
         self.class_body_points_3d['LTows'] = (self.class_body_points_centered['LTows'][X], 0) + \
-                                             tuple([get_z_coordinate(self.class_body_points_centered['LTows'],
-                                                                     self.__user_height_in_pixel * 0.125,
+                                             tuple([get_z_coordinate((self.class_body_points_centered['LTows'][X], 0),
+                                                                     self.__user_height_in_pixel * 0.12,
                                                                      self.class_body_points_centered['LHeel'])])

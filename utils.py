@@ -48,6 +48,7 @@ def get_ignored_indexes(full_list, class_list):
             output.append(idx)
     return output
 
+
 def plot_points(point_list, label_list, title, out_dir, file_name, file_dir):
     x = list()
     y = list()

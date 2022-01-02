@@ -4,11 +4,14 @@ from FullBody import Body, BODY_PARTS_LIST
 import utils
 import mediapipe as mp
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
+parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
+
 
 INSTRUCTIONS_COLOR = (0, 0, 0)
 COUNTER_COLOR = (0, 0, 0)
@@ -18,14 +21,19 @@ OFF_LINE_COLOR = (0, 0, 255)
 
 
 args = parser.parse_args()
+data_set_mode = args.data_set_mode
+run_dir = utils.create_run_dir()
+if data_set_mode:
+    data_types = ['good', 'bad']
+    type_index = 0
+    sample_count = 1
+    user_body = Body(run_dir, data_types[0])
 display_width = args.display_width
 display_height = args.display_height
-run_dir = utils.create_run_dir()
-user_body = Body(run_dir)
 mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
-vision_points = list()
+
 
 cap = cv.VideoCapture(args.input if args.input else 1)
 output = None
@@ -63,6 +71,9 @@ def show_img(frame, save_frame=True):
     global frame_counter
     width, height = frame.shape[1], frame.shape[0]
     cv.putText(frame, 'To quit press q', (width - 150, height - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, EXIT_COLOR, 2)
+    if data_set_mode:
+        cv.putText(frame, 'Perform type: {} - {} To go'.format(data_types[type_index], sample_count - squat_count),
+                   (10, 40), cv.FONT_HERSHEY_SIMPLEX, 0.5, INSTRUCTIONS_COLOR, 2)
     resized = cv.resize(frame, (display_width, display_height))
     cv.imshow('OpenPose using OpenCV', resized)
     if save_frame:
@@ -142,6 +153,26 @@ def run(frame, points, results):
         show_img(frame, save_frame=False)
 
 
+def data_set_creator(frame, points, results):
+    global data_types, type_index, squat_count, sample_count, cap
+    if squat_count == sample_count:
+        cap.release()
+        cv.destroyAllWindows()
+        print('Saving info for type {}'.format(data_types[type_index]))
+        user_body.output_points()
+        type_index += 1
+        if type_index >= len(data_types):
+            return False
+        else:
+            user_body.training_dir = data_types[type_index]
+            user_body.calibrate_mode = True
+            squat_count = 0
+            cap = cv.VideoCapture(args.input if args.input else 1)
+            return True
+    run(frame, points, results)
+    return True
+
+
 while cv.waitKey(1) < 0:
     hasFrame, frame = cap.read()
     if not hasFrame:
@@ -155,12 +186,17 @@ while cv.waitKey(1) < 0:
     elif user_body.sample_squat_mode:
         sample_squat(frame, points, results)
     else:
-        run(frame, points, results)
+        if data_set_mode:
+            if not data_set_creator(frame, points, results):
+                break
+        else:
+            continue
     frame_counter += 1
 if output:
     output.release()
 cap.release()
 cv.destroyAllWindows()
-print('Outputing data...')
-user_body.output_points()
+if not data_set_mode:
+    print('Outputing data...')
+    user_body.output_points()
 
