@@ -1,6 +1,7 @@
 from abc import ABC
 
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -134,3 +135,7 @@ def binary_accuracy(preds, y):
     round_y[y <= 0.4] = 0
     accuracy = round_preds == round_y
     return torch.mean(accuracy.float())
+
+def split_data_train_test(data, labels, test_size=0.2):
+    train_x, test_x,train_y, test_y = train_test_split(data, labels, test_size=test_size)
+    return train_x, train_y, test_x, test_y

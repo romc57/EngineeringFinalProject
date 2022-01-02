@@ -226,10 +226,3 @@ def normalize_data_len(data_set):
             video_frames_new = video_frames[slicing_indices]
             output_data.append(video_frames_new)
     return output_data
-
-if __name__ == '__main__':
-    data, labels = get_data_set(r'training_data_set', r'three_d_points')
-    print(labels)
-    normal_data = normalize_data_len(data)
-    for data in normal_data:
-        print(len(data))
