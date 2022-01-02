@@ -166,7 +166,3 @@ def get_standing_line(width, height, height_fraction, line_fraction):
     f_point = (int(math.floor(middle_frame - (fraction_width / 2))), int(math.floor(height_position)))
     s_point = (int(math.floor(middle_frame + (fraction_width / 2))), int(math.floor(height_position)))
     return f_point, s_point
-
-
-if __name__ == '__main__':
-    print(get_ignored_indexes(BODY_PARTS_LIST, BODY_PARTS_LIST_CLASS))

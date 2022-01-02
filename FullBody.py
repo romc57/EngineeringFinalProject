@@ -95,6 +95,7 @@ class Body:
             print('User lowest point ratio {}'.format(abs(self.__cur_lowest_squat_point - self.__lowest_squat_point)))
             if (self.__cur_lowest_squat_point - self.__lowest_squat_point) < 10:  # if End - got the low already
                 self.__cur_lowest_squat_point = None  # Reset the lowest point
+                self.__cur_squat_frames.append(copy.deepcopy(self.class_body_points))  # Add capture to list
                 self.valid_points_list.append(copy.deepcopy(self.__cur_squat_frames))  # Add squat list to list of squats
                 self.__cur_squat_frames = list()  # Reset the current squat list
                 return True  # Return end of movement
