@@ -24,9 +24,9 @@ args = parser.parse_args()
 data_set_mode = args.data_set_mode
 run_dir = utils.create_run_dir()
 if data_set_mode:
-    data_types = ['good', 'bad']
+    data_types = ['good', 'high_waste', 'knee_collapse', 'lifting_heels']
     type_index = 0
-    sample_count = 5
+    sample_count = {'good': 2, 'high_waste': 1, 'knee_collapse': 1, 'lifting_heels': 1}
     user_body = Body(run_dir, data_types[0])
 else:
     user_body = Body(run_dir)
@@ -70,11 +70,12 @@ def insert_squat_count(frame):
 
 
 def show_img(frame, save_frame=True):
-    global frame_counter
+    global frame_counter, data_types, type_index
     width, height = frame.shape[1], frame.shape[0]
     cv.putText(frame, 'To quit press q', (width - 150, height - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, EXIT_COLOR, 2)
     if data_set_mode:
-        cv.putText(frame, 'Perform type: {} - {} To go'.format(data_types[type_index], sample_count - squat_count),
+        cv.putText(frame, 'Perform type: {} - {} To go'.format(data_types[type_index],
+                                                               sample_count[data_types[type_index]] - squat_count),
                    (10, 40), cv.FONT_HERSHEY_SIMPLEX, 0.5, INSTRUCTIONS_COLOR, 2)
     resized = cv.resize(frame, (display_width, display_height))
     cv.imshow('OpenPose using OpenCV', resized)
@@ -160,7 +161,7 @@ def run(frame, points, results):
 
 def data_set_creator(frame, points, results):
     global data_types, type_index, squat_count, sample_count, cap
-    if squat_count == sample_count:
+    if squat_count == sample_count[data_types[type_index]]:
         cap.release()
         cv.destroyAllWindows()
         print('Saving info for type {}'.format(data_types[type_index]))

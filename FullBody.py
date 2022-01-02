@@ -259,11 +259,10 @@ class Body:
             write_to_txt_points('\n'.join(str(dots) for dots in three_d), 'training_data_set',
                                 'three_d_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
                                 'three_d_points/{}'.format(self.training_dir))
-            three_d = None
-            centered = None
         self.class_body_points = None
         self.class_body_points_3d = None
         self.class_body_points_centered = None
+        self.valid_points_list = list()
 
     def center_r_heel(self):
         self.class_body_points_centered = dict()
