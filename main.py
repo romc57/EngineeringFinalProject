@@ -10,7 +10,7 @@ parser.add_argument('--input', help='Path to image or video. Skip to capture fra
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
-parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
+parser.add_argument('--data_set_mode', default=False, type=bool, help='Mark true to create a dataset.')
 
 
 INSTRUCTIONS_COLOR = (0, 0, 0)
@@ -28,6 +28,8 @@ if data_set_mode:
     type_index = 0
     sample_count = 1
     user_body = Body(run_dir, data_types[0])
+else:
+    user_body = Body(run_dir)
 display_width = args.display_width
 display_height = args.display_height
 mpPose = mp.solutions.pose
@@ -159,7 +161,7 @@ def data_set_creator(frame, points, results):
         cap.release()
         cv.destroyAllWindows()
         print('Saving info for type {}'.format(data_types[type_index]))
-        user_body.output_points()
+        user_body.output_data_set_points()
         type_index += 1
         if type_index >= len(data_types):
             return False
@@ -189,8 +191,10 @@ while cv.waitKey(1) < 0:
         if data_set_mode:
             if not data_set_creator(frame, points, results):
                 break
+            else:
+                continue
         else:
-            continue
+            run(frame, points, results)
     frame_counter += 1
 if output:
     output.release()

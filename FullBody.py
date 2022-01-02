@@ -237,15 +237,27 @@ class Body:
                                 'centered_points_id_{}-{}.txt'.format(start_frame, end_frame), 'centered_points')
             write_to_txt_points('\n'.join(str(dots) for dots in three_d), self.run_dir,
                                 'three_d_points_id_{}-{}.txt'.format(start_frame, end_frame), 'three_d_points')
-            if self.training_dir:
-                cur_string_time = "".join(str(datetime.datetime.now()).split(" ")[1].split(".")[0].split(":"))
-                cur_string_date = "".join(str(datetime.datetime.now()).split(" ")[0].split("-")) + cur_string_time
-                write_to_txt_points('\n'.join(str(dots) for dots in centered), 'training_data_set',
-                                    'centered_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
-                                    'centered_points/{}'.format(self.training_dir))
-                write_to_txt_points('\n'.join(str(dots) for dots in three_d), 'training_data_set',
-                                    'three_d_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
-                                    'three_d_points/{}'.format(self.training_dir))
+
+    def output_data_set_points(self):
+        self.__get_body_lengths()
+        for squat_points in self.valid_points_list:
+            three_d, centered = list(), list()
+            start_frame, end_frame = squat_points[0]['frame_idx'], squat_points[-1]['frame_idx']
+            for points in squat_points:
+                self.class_body_points = copy.deepcopy(points)
+                self.center_r_heel()
+                self.rotate_points_around_r_heel()
+                self.create_3d_points()
+                centered.append(self.get_class_points_list())
+                three_d.append(self.get_class_3d_points_list())
+            cur_string_time = "".join(str(datetime.datetime.now()).split(" ")[1].split(".")[0].split(":"))
+            cur_string_date = "".join(str(datetime.datetime.now()).split(" ")[0].split("-")) + cur_string_time
+            write_to_txt_points('\n'.join(str(dots) for dots in centered), 'training_data_set',
+                                'centered_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
+                                'centered_points/{}'.format(self.training_dir))
+            write_to_txt_points('\n'.join(str(dots) for dots in three_d), 'training_data_set',
+                                'three_d_points_id_{}_d_{}.txt'.format(start_frame, cur_string_date),
+                                'three_d_points/{}'.format(self.training_dir))
         self.class_body_points, self.class_body_points_3d, self.class_body_points_centered = None, None, None
 
     def center_r_heel(self):
