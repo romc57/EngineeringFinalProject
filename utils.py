@@ -10,6 +10,9 @@ X = 0
 Y = 1
 Z = 2
 
+MULTI_LABELS = ['high_waste', 'knee_collapse', 'lifting_heels']
+BINARY_LABELS = ['bad', 'good']
+
 BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee',
                          'RAnkle', 'LAnkle', 'RHeel', 'LHeel', 'RTows', 'LTows']
 
@@ -183,7 +186,23 @@ def get_standing_line(width, height, height_fraction, line_fraction):
     return f_point, s_point
 
 
-def get_data_set(directory, folder_name):
+def get_data_set(directory, folder_name, multi=True):
+    output_data = list()
+    output_labels = list()
+    if multi:
+        folder_list = MULTI_LABELS
+    else:
+        folder_list = BINARY_LABELS
+    path = os.path.join(directory, folder_name)
+    for i, folder in enumerate(folder_list):
+        for file in os.listdir(os.path.join(path, folder)):
+            curr_data = load_txt_point(path, file, folder)
+            output_data.append(curr_data)
+            output_labels.append(i)
+    return output_data, output_labels
+
+
+def get_data_set_multi(directory, folder_name):
     output_data = list()
     output_labels = list()
     path = os.path.join(directory, folder_name)

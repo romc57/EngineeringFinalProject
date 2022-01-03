@@ -10,7 +10,7 @@ import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 
 NUM_MODEL_NET = '0_3d_net'
-NUM_MODEL_KNN = '0_3d_knn'
+NUM_MODEL_KNN = 'multi_0_3d_knn'
 
 
 class SimpleKNN:
