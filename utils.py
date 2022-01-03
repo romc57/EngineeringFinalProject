@@ -4,6 +4,7 @@ import datetime
 import math
 import os
 import random
+import pickle
 
 X = 0
 Y = 1
@@ -243,6 +244,12 @@ def normalize_data_len(data_set):
             output_data.append(video_frames_new)
     return output_data
 
-if __name__ == '__main__':
-    print(load_random_squat())
+def load_models(model_paths):
+    output_models = list()
+    for model_path in model_paths:
+        loaded_file = open(f'{model_path}', 'rb')
+        model = pickle.load(loaded_file)
+        output_models.append(model)
+    return output_models
+
 

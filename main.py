@@ -5,6 +5,7 @@ import argparse
 from FullBody import Body, BODY_PARTS_LIST
 import utils
 import mediapipe as mp
+from model_network import *
 
 
 parser = argparse.ArgumentParser()
@@ -45,10 +46,7 @@ display_height = args.display_height
 mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
-loaded_file = open(f'{model_knn_2_d}', 'rb')
-model_knn = pickle.load(loaded_file)
-loaded_file_2 = open(f'{model_net_3_d}', 'rb')
-model_net = pickle.load(loaded_file_2)
+model_net, model_knn = utils.load_models([model_net_3_d, model_knn_2_d])
 
 
 cap = cv.VideoCapture(args.input if args.input else 0)
@@ -184,14 +182,20 @@ def get_squat_predict():
     centered, three_d = user_body.get_squat()
     three_d = utils.convert_list_to_np(three_d)
     centered = utils.convert_list_to_np(centered)
-    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d)[0], len(three_d))
-    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered)[0], len(centered))
+    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d)[0],
+                                      len(three_d))
+    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
+                                      len(centered))
     data_knn = centered[indices_2d]
     data_net = three_d[indices_3d]
-    predict_knn = model_knn.predict(data_knn.reshape(2, model_knn.get_dim))
-    predict_net = model_net.predict(data_net)
+    predict_knn = model_knn.predict(data_knn.reshape(1, model_knn.get_dim()))
+    data_test_manager = DataManager(torch.tensor([data_net]), torch.tensor([1]))
+    data_net_it = data_test_manager.get_data_iterator()
+    for data in data_net_it:
+        input, label = data
+        predict_net = model_net.predict(input.float())
     # predict_net = [None]
-    return predict_net[0], predict_knn[0]
+    return predict_net[0].item(), predict_knn[0]
 
 
 def data_set_creator(frame, points, results):
