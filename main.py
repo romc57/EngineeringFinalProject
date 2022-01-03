@@ -27,8 +27,8 @@ last_squat_predict = None
 args = parser.parse_args()
 data_set_mode = args.data_set_mode
 output_data = args.output_data
-model_knn_2_d = 'model_number_2_2d_knn.pickle'
-model_net_3_d = 'model_number_0_3d_net.pickle'
+model_knn_2_d = 'models/model_number_0_2d_knn.pickle'
+model_net_3_d = 'models/model_number_0_3d_net.pickle'
 if output_data:
     run_dir = utils.create_run_dir()
 else:
@@ -181,13 +181,16 @@ def run(frame, points, results):
 
 def get_squat_predict():
     global model_knn, model_net
-    three_d, centered = user_body.get_squat()
+    centered, three_d = user_body.get_squat()
+    three_d = utils.convert_list_to_np(three_d)
+    centered = utils.convert_list_to_np(centered)
     indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d), len(three_d))
     indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered), len(centered))
-    data_knn = [centered[indices_2d]]
-    data_net = [three_d[indices_3d]]
-    predict_knn = model_knn.predict(data_knn)
-    predict_net = model_net.predict(data_net)
+    data_knn = utils.convert_list_to_np([centered[indices_2d]])
+    data_net = utils.convert_list_to_np([three_d[indices_3d]])
+    predict_knn = model_knn.predict(data_knn.reshape(len(data_knn), -1))
+    # predict_net = model_net.predict(data_net)
+    predict_net = [None]
     return predict_net[0], predict_knn[0]
 
 

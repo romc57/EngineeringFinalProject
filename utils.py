@@ -198,6 +198,10 @@ def find_min_y_index(frames):
     return np.where(head_y_position == np.amin(head_y_position))[0]
 
 
+def convert_list_to_np(list_obj):
+    return np.array(list_obj)
+
+
 def find_slicing_indices(wanted_len, min_move, frames_len):
     if wanted_len % 2 == 0:
         move_down_size = np.floor(wanted_len / 2).astype(np.int64)
