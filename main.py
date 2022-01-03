@@ -9,7 +9,7 @@ from model_network import *
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', default=0, help='Path to image or video. Skip to capture frames from camera')
+parser.add_argument('--input', default=1, help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
@@ -31,7 +31,7 @@ data_set_mode = args.data_set_mode
 output_data = args.output_data
 model_knn_2_d = 'models/model_number_0_2d_knn.pickle'
 model_net_3_d = 'models/model_number_0_3d_net.pickle'
-model_knn_multi_2_d = 'model_number_multi_0_3d_knn.pickle'
+model_knn_multi_2_d = 'models/model_number_multi_0_3d_knn.pickle'
 if output_data:
     run_dir = utils.create_run_dir()
 else:
@@ -162,8 +162,8 @@ def run(frame, points, results):
     instruction = user_body.check_body_points(points, frame_counter)
     draw_standing_line(frame, standing_line_points)
     if user_body.got_valid_points():
-        if last_squat_predict:
-            if predict_mistake:
+        if last_squat_predict is not None:
+            if predict_mistake is not None and last_squat_predict == 0:
                 insert_instructions(frame, 'Squat {}: knn {}'.format(squat_count, utils.MULTI_LABELS[predict_mistake]))
             else:
                 insert_instructions(frame, 'Squat {}: knn {}'.format(squat_count, 'Good Job!'))
@@ -189,25 +189,28 @@ def run(frame, points, results):
         insert_squat_count(frame)
         show_img(frame, save_frame=False)
 
+
 def get_knn_squat_predict(knn, centered):
     centered = utils.convert_list_to_np(centered)
     indices_2d = utils.find_slicing_indices(int(knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
                                             len(centered))
     data_knn = centered[indices_2d]
     predict_knn = knn.predict(data_knn.reshape(1, knn.get_dim()))
-    return  predict_knn[0]
+    return predict_knn[0]
 
-def get_squat_predict(knn, net):
+
+def get_squat_predict():
+    global model_knn, model_net
     centered, three_d = user_body.get_squat()
     three_d = utils.convert_list_to_np(three_d)
     centered = utils.convert_list_to_np(centered)
-    indices_3d = utils.find_slicing_indices(int(net.get_dim() / 45), utils.find_min_y_index(three_d)[0],
+    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d)[0],
                                       len(three_d))
-    indices_2d = utils.find_slicing_indices(int(knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
+    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
                                       len(centered))
     data_knn = centered[indices_2d]
     data_net = three_d[indices_3d]
-    predict_knn = knn.predict(data_knn.reshape(1, knn.get_dim()))
+    predict_knn = model_knn.predict(data_knn.reshape(1, model_knn.get_dim()))
     data_test_manager = DataManager(torch.tensor([data_net]), torch.tensor([1]))
     data_net_it = data_test_manager.get_data_iterator()
     for data in data_net_it:

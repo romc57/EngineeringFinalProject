@@ -177,7 +177,7 @@ class Body:
             return False
         dist_lef = abs(self.__standing_line_points[0][Y] - left_heel[Y])
         dist_right = abs(self.__standing_line_points[0][Y] - left_heel[Y])
-        if (dist_lef > 10) or (dist_right > 10):
+        if (dist_lef > 15) or (dist_right > 15):
             self.__user_on_standing_line = False
             return False
         self.__user_on_standing_line = True

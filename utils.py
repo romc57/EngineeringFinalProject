@@ -72,10 +72,7 @@ def plot_points(point_list, label_list, title, out_dir, file_name, file_dir):
     plt.xlim((int(min_x) - 100, int(max_x) + 100))
     plt.ylim((int(min_y) - 100, int(max_y) + 100))
     for i, txt in enumerate(labels):
-        if txt[0] == 'L':
-            plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i] - 100, y[i]))
-        else:
-            plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i]))
+        plt.annotate("{}".format(txt), (x[i], y[i]))
     file_path = os.path.join(out_dir, file_dir, file_name)
     plt.savefig(file_path, bbox_inches='tight')
     plt.show()
@@ -101,9 +98,9 @@ def plot_profile_points(point_list, label_list, title, out_dir, file_name, file_
     plt.ylim((int(min_y) - 100, int(max_y) + 100))
     for i, txt in enumerate(labels):
         if txt[0] == 'L':
-            plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i] + 5))
+            plt.annotate("{}".format(txt), (x[i], y[i] + 6))
         else:
-            plt.annotate("{}-{}".format(txt, (x[i], y[i])), (x[i], y[i] - 5))
+            plt.annotate("{}".format(txt), (x[i], y[i] - 10))
     file_path = os.path.join(out_dir, file_dir, file_name)
     plt.savefig(file_path, bbox_inches='tight')
     plt.show()
@@ -262,6 +259,7 @@ def normalize_data_len(data_set):
             video_frames_new = video_frames[slicing_indices]
             output_data.append(video_frames_new)
     return output_data
+
 
 def load_models(model_paths):
     output_models = list()
