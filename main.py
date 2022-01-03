@@ -28,7 +28,7 @@ args = parser.parse_args()
 data_set_mode = args.data_set_mode
 output_data = args.output_data
 model_knn_2_d = 'model_number_2_2d_knn.pickle'
-model_net_3_d = 'model_number_0.pickle'
+model_net_3_d = 'model_number_0_3d_net.pickle'
 if output_data:
     run_dir = utils.create_run_dir()
 else:
@@ -45,6 +45,10 @@ display_height = args.display_height
 mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
+loaded_file = open(f'{model_knn_2_d}', 'rb')
+model_knn = pickle.load(loaded_file)
+loaded_file_2 = open(f'{model_net_3_d}', 'rb')
+model_net = pickle.load(loaded_file_2)
 
 
 cap = cv.VideoCapture(args.input if args.input else 1)
@@ -176,13 +180,9 @@ def run(frame, points, results):
 
 
 def get_squat_predict():
-    global model_knn_2_d, model_net_3_d
+    global model_knn, model_net
     three_d, centered = user_body.get_squat()
-    loaded_file = open(f'{model_knn_2_d}', 'rb')
-    model_knn = pickle.load(loaded_file)
-    loaded_file_2 = open(f'{model_net_3_d}', 'rb')
-    model_net = pickle.load(loaded_file_2)
-    indices_3d = utils.find_slicing_indices(int(model_net.__dim / 45), utils.find_min_y_index(three_d), len(three_d))
+    indices_3d = utils.find_slicing_indices(int(model_knn.__dim / 45), utils.find_min_y_index(three_d), len(three_d))
     indices_2d = utils.find_slicing_indices(int(model_knn.__dim / 30), utils.find_min_y_index(centered), len(centered))
     data_knn = [centered[indices_2d]]
     data_net = [three_d[indices_3d]]
