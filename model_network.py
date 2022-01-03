@@ -10,7 +10,7 @@ import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 
 NUM_MODEL_NET = '0_3d_net'
-NUM_MODEL_KNN = 'not_for_use_knn'
+NUM_MODEL_KNN = '0_3d_knn'
 
 
 class SimpleKNN:
@@ -29,6 +29,9 @@ class SimpleKNN:
     def predict(self, data):
         return self.model.predict(data)
 
+    def get_dim(self):
+        return self.__dim
+
 
 class LinearNeuralNet(nn.Module):
     def __init__(self, dim):
@@ -46,6 +49,8 @@ class LinearNeuralNet(nn.Module):
     def predict(self, x):
         return self(x)
 
+    def get_dim(self):
+        return self.__dim
 
 class DataManager:
     def __init__(self, tensors, labels):

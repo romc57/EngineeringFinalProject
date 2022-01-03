@@ -182,8 +182,8 @@ def run(frame, points, results):
 def get_squat_predict():
     global model_knn, model_net
     three_d, centered = user_body.get_squat()
-    indices_3d = utils.find_slicing_indices(int(model_knn.__dim / 45), utils.find_min_y_index(three_d), len(three_d))
-    indices_2d = utils.find_slicing_indices(int(model_knn.__dim / 30), utils.find_min_y_index(centered), len(centered))
+    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d), len(three_d))
+    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered), len(centered))
     data_knn = [centered[indices_2d]]
     data_net = [three_d[indices_3d]]
     predict_knn = model_knn.predict(data_knn)
