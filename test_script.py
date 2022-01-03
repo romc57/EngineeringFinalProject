@@ -1,7 +1,7 @@
 from utils import  get_data_set, normalize_data_len
 from model_network import *
 
-TEST_SET_SIZE = 0.1
+TEST_SET_SIZE = 0.2
 EPOCHS = 2
 LR = 0.01
 WD = 0.01

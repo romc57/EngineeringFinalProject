@@ -9,8 +9,8 @@ import pickle
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 
-NUM_MODEL_NET = '1_3d_net'
-NUM_MODEL_KNN = '4_3d_knn'
+NUM_MODEL_NET = '0_3d_net'
+NUM_MODEL_KNN = 'not_for_use_knn'
 
 
 class SimpleKNN:
