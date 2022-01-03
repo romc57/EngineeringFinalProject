@@ -41,7 +41,14 @@ INSTRUCTIONS = {
     'calibrated': 'Done',
     'invalid_points': 'Points are not right',
     'standing_line': 'Please stand on the standing line',
-    'missing_points': 'Missing some needed points'
+    'missing_points': 'Missing some needed points',
+    'raising_heels': 'Keep your feet flat on the floor',
+    'high_waste': 'Bend forward less',
+    'knee_collapse': 'Keep knees aligned with your feet',
+    'but_forward': 'Imagine sitting down on a chair',
+    'head_position': 'Look straight ahead',
+    'shoulder_stress': 'Release your shoulders',
+    'round_back': 'Engage your core'
 }
 
 
