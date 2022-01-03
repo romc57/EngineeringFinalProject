@@ -81,6 +81,23 @@ class Body:
             return INSTRUCTIONS['standing_line']
         self.__valid_points = True
 
+    def get_squat(self, squat_idx=-1):
+        if len(self.valid_points_list) == 0:
+            return  False
+        elif squat_idx != -1 and squat_idx >= len(self.valid_points_list):
+            return False
+        else:
+            squat_class_type = self.valid_points_list[squat_idx]
+            three_d, centered = list(), list()
+            for frame in squat_class_type:
+                self.class_body_points = copy.deepcopy(frame)
+                self.center_r_heel()
+                self.rotate_points_around_r_heel()
+                self.create_3d_points()
+                centered.append(self.get_class_points_list())
+                three_d.append(self.get_class_3d_points_list())
+            return centered, three_d
+
     def squat(self):
         cur_height = self.__frame_sizes[Y] - self.class_body_points['Nose'][Y]  # Current user height
         if len(self.__cur_squat_frames) == 0:  # The beginning of the squat
@@ -215,6 +232,8 @@ class Body:
         return output
 
     def output_points(self):
+        if not self.run_dir:
+            return False
         self.__get_body_lengths()
         for squat_points in self.valid_points_list:
             three_d, centered = list(), list()

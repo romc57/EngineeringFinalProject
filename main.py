@@ -1,3 +1,5 @@
+import pickle
+
 import cv2 as cv
 import argparse
 from FullBody import Body, BODY_PARTS_LIST
@@ -9,8 +11,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--input', default=0, help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
-parser.add_argument('--save', default=False, type=bool, help='Save the video output')
+parser.add_argument('--save', default=True, type=bool, help='Save the video output')
 parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
+parser.add_argument('--output_data', default=False, type=bool, help='Mark true to create a run_dir.')
 
 
 INSTRUCTIONS_COLOR = (0, 0, 0)
@@ -22,11 +25,17 @@ OFF_LINE_COLOR = (0, 0, 255)
 
 args = parser.parse_args()
 data_set_mode = args.data_set_mode
-run_dir = utils.create_run_dir()
+output_data = args.output_data
+model_knn_2_d = 'model_number_2_2d_knn.pickle'
+model_net_3_d = 'model_number_0.pickle'
+if output_data:
+    run_dir = utils.create_run_dir()
+else:
+    run_dir = None
 if data_set_mode:
     data_types = ['good', 'high_waste', 'knee_collapse', 'lifting_heels']
     type_index = 0
-    sample_count = {'good': 2, 'high_waste': 1, 'knee_collapse': 1, 'lifting_heels': 1}
+    sample_count = {'good': 30, 'high_waste': 10, 'knee_collapse': 10, 'lifting_heels': 10}
     user_body = Body(run_dir, data_types[0])
 else:
     user_body = Body(run_dir)
@@ -37,7 +46,7 @@ pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
 
 
-cap = cv.VideoCapture(args.input if args.input else 1)
+cap = cv.VideoCapture(args.input if args.input else 0)
 output = None
 if args.save:
     fourcc = cv.VideoWriter_fourcc(*'MP4V')
@@ -147,6 +156,8 @@ def run(frame, points, results):
         insert_instructions(frame, 'Squat!')
         insert_squat_count(frame)
         if user_body.squat():
+            if not data_set_mode:
+                three_d_p, two_d_p = get_squat_predict()
             squat_count += 1
         mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
         if data_set_mode:
@@ -158,6 +169,21 @@ def run(frame, points, results):
         insert_squat_count(frame)
         show_img(frame, save_frame=False)
 
+
+def get_squat_predict():
+    global model_knn_2_d, model_net_3_d
+    three_d, centered = user_body.get_squat()
+    loaded_file = open(f'{model_knn_2_d}', 'rb')
+    model_knn = pickle.load(loaded_file)
+    loaded_file_2 = open(f'{model_net_3_d}', 'rb')
+    model_net = pickle.load(loaded_file_2)
+    indices_3d = utils.find_slicing_indices(model_net.__dim, utils.find_min_y_index(three_d), len(three_d))
+    indices_2d = utils.find_slicing_indices(model_knn.__dim, utils.find_min_y_index(centered), len(centered))
+    data_knn = [centered[indices_2d]]
+    data_net = [three_d[indices_3d]]
+    predict_knn = model_knn.predict(data_knn)
+    predict_net = model_net.predict(data_net)
+    return predict_net[0], predict_knn[0]
 
 def data_set_creator(frame, points, results):
     global data_types, type_index, squat_count, sample_count, cap
@@ -173,7 +199,7 @@ def data_set_creator(frame, points, results):
             user_body.training_dir = data_types[type_index]
             user_body.calibrate_mode = True
             squat_count = 0
-            cap = cv.VideoCapture(args.input if args.input else 1)
+            cap = cv.VideoCapture(args.input if args.input else 0)
             return True
     run(frame, points, results)
     return True
@@ -204,7 +230,7 @@ if output:
     output.release()
 cap.release()
 cv.destroyAllWindows()
-if not data_set_mode:
-    print('Outputing data...')
+if not data_set_mode and run_dir:
+    print('Outputting data...')
     user_body.output_points()
 

@@ -9,16 +9,22 @@ import pickle
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 
-NUM_MODEL = 0
+NUM_MODEL_NET = '1_3d_net'
+NUM_MODEL_KNN = '4_3d_knn'
 
 
 class SimpleKNN:
-    def __init__(self, num_neighbors):
-        self._neighbors = num_neighbors
-        self.model = KNeighborsClassifier(self._neighbors)
+    def __init__(self, num_neighbors, dim):
+        self.__dim = dim
+        self.__neighbors = num_neighbors
+        self.model = KNeighborsClassifier(self.__neighbors)
 
     def train_model(self, train_set, train_tags):
-        return self.model.fit(train_set, train_tags)
+        self.model = self.model.fit(train_set, train_tags)
+        model_file = open(f'model_number_{NUM_MODEL_KNN}.pickle', 'wb')
+        pickle.dump(self.model, model_file)
+        model_file.close()
+        return self.model
 
     def predict(self, data):
         return self.model.predict(data)
@@ -27,6 +33,7 @@ class SimpleKNN:
 class LinearNeuralNet(nn.Module):
     def __init__(self, dim):
         super().__init__()
+        self.__dim = dim
         self.layers = nn.Sequential(
             nn.Flatten(),
             nn.Linear(dim, 1),
@@ -89,7 +96,7 @@ def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, s
         pbar = tqdm.tqdm(iterable=data_iter.get_data_iterator())
         loss, model = train_epoch(model, pbar, optimizer, loss_func)
         loss_lst.append(loss)
-    model_file = open(f'model_number_{NUM_MODEL}.pickle', 'wb')
+    model_file = open(f'model_number_{NUM_MODEL_NET}.pickle', 'wb')
     pickle.dump(model, model_file)
     model_file.close()
 
