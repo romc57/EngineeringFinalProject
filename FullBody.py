@@ -55,6 +55,7 @@ class Body:
             return INSTRUCTIONS['standing_line']
         self.__calculate_user_height()
         self.__init_pose = copy.deepcopy(self.class_body_points)
+        self.__get_body_lengths()
         self.__ready = True
         return INSTRUCTIONS['calibrated']
 

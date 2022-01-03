@@ -8,11 +8,11 @@ import mediapipe as mp
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', default=0, help='Path to image or video. Skip to capture frames from camera')
+parser.add_argument('--input', default=1, help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
-parser.add_argument('--save', default=True, type=bool, help='Save the video output')
-parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
+parser.add_argument('--save', default=False, type=bool, help='Save the video output')
+parser.add_argument('--data_set_mode', default=False, type=bool, help='Mark true to create a dataset.')
 parser.add_argument('--output_data', default=False, type=bool, help='Mark true to create a run_dir.')
 
 
@@ -21,6 +21,7 @@ COUNTER_COLOR = (0, 0, 0)
 EXIT_COLOR = (0, 0, 255)
 ON_LINE_COLOR = (255, 0, 0)
 OFF_LINE_COLOR = (0, 0, 255)
+last_squat_predict = None
 
 
 args = parser.parse_args()
@@ -46,11 +47,11 @@ pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
 
 
-cap = cv.VideoCapture(args.input if args.input else 0)
+cap = cv.VideoCapture(args.input if args.input else 1)
 output = None
 if args.save:
     fourcc = cv.VideoWriter_fourcc(*'MP4V')
-    output = cv.VideoWriter('output.mp4', fourcc, 15.0, (display_width, display_height))
+    output = cv.VideoWriter('training_example.mp4', fourcc, 15.0, (display_width, display_height))
 frame_counter = 0
 standing_line_points = None
 calibrate_dur = 5
@@ -149,15 +150,19 @@ def sample_squat(frame, points, results):
 
 
 def run(frame, points, results):
-    global frame_counter, squat_count
+    global frame_counter, squat_count, last_squat_predict
     instruction = user_body.check_body_points(points, frame_counter)
     draw_standing_line(frame, standing_line_points)
     if user_body.got_valid_points():
-        insert_instructions(frame, 'Squat!')
+        if last_squat_predict:
+            insert_instructions(frame, 'Squat {}: net: {} knn {}'.format(squat_count, last_squat_predict[0],
+                                                                         last_squat_predict[1]))
+        else:
+            insert_instructions(frame, 'Squat!')
         insert_squat_count(frame)
         if user_body.squat():
             if not data_set_mode:
-                three_d_p, two_d_p = get_squat_predict()
+                last_squat_predict = get_squat_predict()
             squat_count += 1
         mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
         if data_set_mode:
@@ -177,13 +182,14 @@ def get_squat_predict():
     model_knn = pickle.load(loaded_file)
     loaded_file_2 = open(f'{model_net_3_d}', 'rb')
     model_net = pickle.load(loaded_file_2)
-    indices_3d = utils.find_slicing_indices(model_net.__dim, utils.find_min_y_index(three_d), len(three_d))
-    indices_2d = utils.find_slicing_indices(model_knn.__dim, utils.find_min_y_index(centered), len(centered))
+    indices_3d = utils.find_slicing_indices(int(model_net.__dim / 45), utils.find_min_y_index(three_d), len(three_d))
+    indices_2d = utils.find_slicing_indices(int(model_knn.__dim / 30), utils.find_min_y_index(centered), len(centered))
     data_knn = [centered[indices_2d]]
     data_net = [three_d[indices_3d]]
     predict_knn = model_knn.predict(data_knn)
     predict_net = model_net.predict(data_net)
     return predict_net[0], predict_knn[0]
+
 
 def data_set_creator(frame, points, results):
     global data_types, type_index, squat_count, sample_count, cap
@@ -199,7 +205,7 @@ def data_set_creator(frame, points, results):
             user_body.training_dir = data_types[type_index]
             user_body.calibrate_mode = True
             squat_count = 0
-            cap = cv.VideoCapture(args.input if args.input else 0)
+            cap = cv.VideoCapture(args.input if args.input else 1)
             return True
     run(frame, points, results)
     return True

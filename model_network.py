@@ -22,7 +22,7 @@ class SimpleKNN:
     def train_model(self, train_set, train_tags):
         self.model = self.model.fit(train_set, train_tags)
         model_file = open(f'model_number_{NUM_MODEL_KNN}.pickle', 'wb')
-        pickle.dump(self.model, model_file)
+        pickle.dump(self, model_file)
         model_file.close()
         return self.model
 

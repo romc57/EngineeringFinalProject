@@ -9,8 +9,7 @@ Y = 1
 Z = 2
 
 BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee',
-                         'RAnkle', 'LAnkle',
-                         'RHeel', 'LHeel', 'RTows', 'LTows']
+                         'RAnkle', 'LAnkle', 'RHeel', 'LHeel', 'RTows', 'LTows']
 
 BODY_PARTS_LIST = ['Nose', 'REye_l', 'REye_c', 'REye_r', 'LEye_r', 'LEye_c', 'LEye_l', 'RCheek', 'LCheek', 'RLip',
                    'LLip', 'RShoulder', 'LShoulder', 'RElbow', 'LElbow', 'RWrist', 'LWrist', 'RHand_r', 'LHand_l',
