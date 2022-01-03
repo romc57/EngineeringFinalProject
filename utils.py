@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import datetime
 import math
 import os
+import random
 
 X = 0
 Y = 1
@@ -160,6 +161,18 @@ def load_txt_point(run_dir, file_name, dir_name):
     return points
 
 
+def load_random_squat(squat_type='good'):
+    working_dir = 'training_data_set'
+    point_types = ['centered_points', 'three_d_points']
+    points = list()
+    for point_type in point_types:
+        path = os.path.join(working_dir, point_type, squat_type)
+        squat_files = os.listdir(path)
+        file_idx = random.randint(0, len(squat_files) - 1)
+        points.append(list(load_txt_point(working_dir, squat_files[file_idx], os.path.join(point_type, squat_type))))
+    return tuple(points)
+
+
 def get_standing_line(width, height, height_fraction, line_fraction):
     middle_frame = width / 2
     height_position = height - (height * height_fraction)
@@ -229,3 +242,7 @@ def normalize_data_len(data_set):
             video_frames_new = video_frames[slicing_indices]
             output_data.append(video_frames_new)
     return output_data
+
+if __name__ == '__main__':
+    print(load_random_squat())
+
