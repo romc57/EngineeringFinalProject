@@ -8,7 +8,7 @@ import mediapipe as mp
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', default=1, help='Path to image or video. Skip to capture frames from camera')
+parser.add_argument('--input', default=0, help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
@@ -51,7 +51,7 @@ loaded_file_2 = open(f'{model_net_3_d}', 'rb')
 model_net = pickle.load(loaded_file_2)
 
 
-cap = cv.VideoCapture(args.input if args.input else 1)
+cap = cv.VideoCapture(args.input if args.input else 0)
 output = None
 if args.save:
     fourcc = cv.VideoWriter_fourcc(*'MP4V')
@@ -184,13 +184,13 @@ def get_squat_predict():
     centered, three_d = user_body.get_squat()
     three_d = utils.convert_list_to_np(three_d)
     centered = utils.convert_list_to_np(centered)
-    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d), len(three_d))
-    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered), len(centered))
-    data_knn = utils.convert_list_to_np([centered[indices_2d]])
-    data_net = utils.convert_list_to_np([three_d[indices_3d]])
-    predict_knn = model_knn.predict(data_knn.reshape(len(data_knn), -1))
-    # predict_net = model_net.predict(data_net)
-    predict_net = [None]
+    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d)[0], len(three_d))
+    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered)[0], len(centered))
+    data_knn = centered[indices_2d]
+    data_net = three_d[indices_3d]
+    predict_knn = model_knn.predict(data_knn.reshape(2, model_knn.get_dim))
+    predict_net = model_net.predict(data_net)
+    # predict_net = [None]
     return predict_net[0], predict_knn[0]
 
 
@@ -208,7 +208,7 @@ def data_set_creator(frame, points, results):
             user_body.training_dir = data_types[type_index]
             user_body.calibrate_mode = True
             squat_count = 0
-            cap = cv.VideoCapture(args.input if args.input else 1)
+            cap = cv.VideoCapture(args.input if args.input else 0)
             return True
     run(frame, points, results)
     return True
