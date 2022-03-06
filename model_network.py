@@ -1,3 +1,8 @@
+'''
+@authors: Rom Cohen, Royi Schossberger.
+@brief: The next py file is implementation of our learning models part final engineering project.
+'''
+
 from abc import ABC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
@@ -9,17 +14,34 @@ import pickle
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 
+# Constants:
 NUM_MODEL_NET = '0_3d_net'
 NUM_MODEL_KNN = 'multi_0_3d_knn'
 
+# -----------------------classes---------------------------------
+
 
 class SimpleKNN:
+    """
+    The next class is a wrapper class for knn model of sklearn.
+    """
     def __init__(self, num_neighbors, dim):
+        """
+        Constructor.
+        :param num_neighbors: The number of neighbors the knn uses for prediction.
+        :param dim: what is the dimension of the data.
+        """
         self.__dim = dim
         self.__neighbors = num_neighbors
         self.model = KNeighborsClassifier(self.__neighbors)
 
     def train_model(self, train_set, train_tags):
+        """
+        Train method - preform training using fit function of sklearn knn and save the model.
+        :param train_set: train set data.
+        :param train_tags: train labels of the same data.
+        :return: trained knn model.
+        """
         self.model = self.model.fit(train_set, train_tags)
         model_file = open(f'model_number_{NUM_MODEL_KNN}.pickle', 'wb')
         pickle.dump(self, model_file)
@@ -27,14 +49,30 @@ class SimpleKNN:
         return self.model
 
     def predict(self, data):
+        """
+        predict method return the predicted in a shape consistent with the input.
+        :param data: data to predict labels on.
+        :return:predictions.
+        """
         return self.model.predict(data)
 
     def get_dim(self):
+        """
+        A getter method for __dim attribute.
+        :return: dim integer.
+        """
         return self.__dim
 
 
 class LinearNeuralNet(nn.Module):
+    """
+    The next class in implementation of a linear neural network.
+    """
     def __init__(self, dim):
+        """
+
+        :param dim:
+        """
         super().__init__()
         self.__dim = dim
         self.layers = nn.Sequential(
@@ -44,37 +82,84 @@ class LinearNeuralNet(nn.Module):
         )
 
     def forward(self, x):
+        """
+
+        :param x:
+        :return:
+        """
         return self.layers(x)
 
     def predict(self, x):
+        """
+
+        :param x:
+        :return:
+        """
         return self(x)
 
     def get_dim(self):
+        """
+
+        :return:
+        """
         return self.__dim
 
+
 class DataManager:
+    """
+
+    """
     def __init__(self, tensors, labels):
+        """
+
+        :param tensors:
+        :param labels:
+        """
         data = list()
         for i in range(len(tensors)):
             data.append((tensors[i], labels[i]))
         self.__data = data
 
     def get_data_iterator(self, batch_size=2):
+        """
+
+        :param batch_size:
+        :return:
+        """
         data_loader = torch.utils.data.DataLoader(MyIterableDataset(self.__data), batch_size=batch_size)
         return data_loader
 
 
 class MyIterableDataset(torch.utils.data.IterableDataset, ABC):
+    """
+
+    """
     def __init__(self, data):
+        """
+
+        :param data:
+        """
         super(MyIterableDataset).__init__()
         self.dataset = data
 
     def __iter__(self):
+        """
+
+        :return:
+        """
         for frame, label in self.dataset:
             yield frame, label
 
 
 def train_epoch(model, data_iterator, optimizer, criterion):
+    """
+
+    :param model:
+    :param data_iterator:
+    :param optimizer:
+    :param criterion:
+    :return:
+    """
     loss = float(0)
     for i, data in enumerate(data_iterator):
         input, label = data
@@ -89,7 +174,18 @@ def train_epoch(model, data_iterator, optimizer, criterion):
     return loss / (i + 1), model
 
 
-def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, start_from_zero=True, weight_decay=0, ):
+def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, start_from_zero=True, weight_decay=0):
+    """
+
+    :param model:
+    :param data_iter:
+    :param n_epochs:
+    :param learning_rate:
+    :param model_to_read:
+    :param start_from_zero:
+    :param weight_decay:
+    :return:
+    """
     if not start_from_zero:
         loaded_file = open(f'model_number_{model_to_read}.pickle', 'rb')
         model = pickle.load(loaded_file)
@@ -107,6 +203,13 @@ def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, s
 
 
 def evaluate(model, data_iterator, criterion):
+    """
+
+    :param model:
+    :param data_iterator:
+    :param criterion:
+    :return:
+    """
     lost = list()
     for data in data_iterator:
         input, label = data
@@ -118,6 +221,16 @@ def evaluate(model, data_iterator, criterion):
 
 
 def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
+    """
+
+    :param train_set:
+    :param train_tags:
+    :param test_set:
+    :param test_tags:
+    :param model:
+    :param method:
+    :return:
+    """
     model.train_model(train_set, train_tags)
     y_hat_train = model.predict(train_set)
     y_hat_test = model.predict(test_set)
@@ -144,6 +257,14 @@ def binary_accuracy(preds, y):
     accuracy = round_preds == round_y
     return torch.mean(accuracy.float())
 
+
 def split_data_train_test(data, labels, test_size=0.2):
-    train_x, test_x,train_y, test_y = train_test_split(data, labels, test_size=test_size)
+    """
+
+    :param data:
+    :param labels:
+    :param test_size:
+    :return:
+    """
+    train_x, test_x, train_y, test_y = train_test_split(data, labels, test_size=test_size)
     return train_x, train_y, test_x, test_y
