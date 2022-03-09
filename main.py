@@ -13,7 +13,7 @@ parser.add_argument('--input', default=0, help='Path to image or video. Skip to 
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
-parser.add_argument('--data_set_mode', default=False, type=bool, help='Mark true to create a dataset.')
+parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
 parser.add_argument('--output_data', default=False, type=bool, help='Mark true to create a run_dir.')
 
 
@@ -26,12 +26,12 @@ last_squat_predict = None
 predict_mistake = None
 
 
-args = parser.parse_args()
-data_set_mode = args.data_set_mode
-output_data = args.output_data
-model_knn_2_d = 'models/model_number_0_2d_knn.pickle'
-model_net_3_d = 'models/model_number_0_3d_net.pickle'
-model_knn_multi_2_d = 'models/model_number_multi_0_3d_knn.pickle'
+args = parser.parse_args()  # Load arguments
+data_set_mode = args.data_set_mode  # Create mode for a data set
+output_data = args.output_data  # Flag to indicate if data should be outputed
+model_knn_2_d = 'models/model_number_0_2d_knn.pickle'  # Trained KNN 2d model
+model_net_3_d = 'models/model_number_0_3d_net.pickle'  # Trained net 3d model
+model_knn_multi_2_d = 'models/model_number_multi_0_3d_knn.pickle'  # Trained knn for multi classification
 if output_data:
     run_dir = utils.create_run_dir()
 else:
@@ -39,8 +39,8 @@ else:
 if data_set_mode:
     data_types = ['good', 'high_waste', 'knee_collapse', 'lifting_heels']
     type_index = 0
-    sample_count = {'good': 30, 'high_waste': 10, 'knee_collapse': 10, 'lifting_heels': 10}
-    user_body = Body(run_dir, data_types[0])
+    sample_count = {'good': 30, 'high_waste': 10, 'knee_collapse': 10, 'lifting_heels': 10}  # How many samples should the system capture
+    user_body = Body(run_dir, data_types[0])  # Create a Body object
 else:
     user_body = Body(run_dir)
 display_width = args.display_width
@@ -65,6 +65,11 @@ squat_count = 0
 
 
 def draw_standing_line(frame, standing_line):
+    """
+    Draw the standing line on frame
+    :param frame: Frame to draw on
+    :param standing_line: Standing line coordinates
+    """
     if standing_line:
         if user_body.on_standing_line():
             cv.line(frame, standing_line[0], standing_line[1], ON_LINE_COLOR, 2)
@@ -73,10 +78,19 @@ def draw_standing_line(frame, standing_line):
 
 
 def insert_instructions(frame, txt):
+    """
+    Insert a user instruction on the top of the frame
+    :param frame: Frame to insert on
+    :param txt: Instruction to insert
+    """
     cv.putText(frame, txt, (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, INSTRUCTIONS_COLOR,  2)
 
 
 def insert_squat_count(frame):
+    """
+    Insert the squat count on the frame
+    :param frame: Frame to insert on
+    """
     global squat_count
     height = frame.shape[0]
     cv.putText(frame, "Squat count: {}".format(squat_count), (10, height - 20), cv.FONT_HERSHEY_SIMPLEX, 0.5,
@@ -84,6 +98,11 @@ def insert_squat_count(frame):
 
 
 def show_img(frame, save_frame=True):
+    """
+    Present the frame to the user and save the frame if got save_frame
+    :param frame: Frame to present
+    :param save_frame: Flag to save the frame
+    """
     global frame_counter, data_types, type_index
     width, height = frame.shape[1], frame.shape[0]
     cv.putText(frame, 'To quit press q', (width - 150, height - 10), cv.FONT_HERSHEY_SIMPLEX, 0.5, EXIT_COLOR, 2)
@@ -101,6 +120,11 @@ def show_img(frame, save_frame=True):
 
 
 def get_points(frame):
+    """
+    Get the body points from the CV Network
+    :param frame: Frame to detect
+    :return: The points of the body parts
+    """
     points = None
     global standing_line_points
     imgRGB = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
@@ -118,6 +142,12 @@ def get_points(frame):
 
 
 def calibrate_mode(frame, points, results):
+    """
+    Runs on calibrate mode is responsible to calibrate the Body object
+    :param frame: Current frame detected
+    :param points: Points detected
+    :param results: Reguarding the points detected
+    """
     global calibrate_frames, frame_counter
     user_body.calibrate_class(points, frame_counter)
     draw_standing_line(frame, standing_line_points)
@@ -138,6 +168,11 @@ def calibrate_mode(frame, points, results):
 
 
 def sample_squat(frame, points, results):
+    """
+    Runs the sample squat stage, initializes the squat on the Body class
+    :param frame: Frame detected
+    :param points: Points detected
+    """
     global frame_counter
     instruction = user_body.check_body_points(points, frame_counter)
     if user_body.got_valid_points():
