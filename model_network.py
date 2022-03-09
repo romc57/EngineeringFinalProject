@@ -70,8 +70,8 @@ class LinearNeuralNet(nn.Module):
     """
     def __init__(self, dim):
         """
-
-        :param dim:
+        Model constructor.
+        :param dim: flatten dim of the data.
         """
         super().__init__()
         self.__dim = dim
@@ -83,37 +83,37 @@ class LinearNeuralNet(nn.Module):
 
     def forward(self, x):
         """
-
-        :param x:
-        :return:
+        Feed forward method of the model
+        :param x: data point.
+        :return: the model layers output for input x. before activation.
         """
         return self.layers(x)
 
     def predict(self, x):
         """
-
-        :param x:
-        :return:
+        Predict method on the model.
+        :param x: data point.
+        :return: the model output of x.
         """
         return self(x)
 
     def get_dim(self):
         """
-
-        :return:
+        A getter for dim attribute.
+        :return: dim.
         """
         return self.__dim
 
 
 class DataManager:
     """
-
+    A data handler class.
     """
     def __init__(self, tensors, labels):
         """
-
-        :param tensors:
-        :param labels:
+        Constructor.
+        :param tensors: data points.
+        :param labels: labels consist with data points.
         """
         data = list()
         for i in range(len(tensors)):
@@ -122,9 +122,9 @@ class DataManager:
 
     def get_data_iterator(self, batch_size=2):
         """
-
+        A getter for data iterator.
         :param batch_size:
-        :return:
+        :return: iterator.
         """
         data_loader = torch.utils.data.DataLoader(MyIterableDataset(self.__data), batch_size=batch_size)
         return data_loader
@@ -132,20 +132,20 @@ class DataManager:
 
 class MyIterableDataset(torch.utils.data.IterableDataset, ABC):
     """
-
+    A class used to create a data iterator for our data.
     """
     def __init__(self, data):
         """
-
-        :param data:
+        Constructor.
+        :param data: our data set.
         """
         super(MyIterableDataset).__init__()
         self.dataset = data
 
     def __iter__(self):
         """
-
-        :return:
+        Implementation of an iterator.
+        :return: yield data point, label.
         """
         for frame, label in self.dataset:
             yield frame, label
@@ -153,12 +153,12 @@ class MyIterableDataset(torch.utils.data.IterableDataset, ABC):
 
 def train_epoch(model, data_iterator, optimizer, criterion):
     """
-
-    :param model:
-    :param data_iterator:
-    :param optimizer:
-    :param criterion:
-    :return:
+    A method for training an epoch.
+    :param model: chosen model object.
+    :param data_iterator: the iterator for the data.
+    :param optimizer: an optimizer method.
+    :param criterion: loss function.
+    :return: current loss and trained model.
     """
     loss = float(0)
     for i, data in enumerate(data_iterator):
@@ -176,15 +176,15 @@ def train_epoch(model, data_iterator, optimizer, criterion):
 
 def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, start_from_zero=True, weight_decay=0):
     """
-
-    :param model:
-    :param data_iter:
-    :param n_epochs:
-    :param learning_rate:
-    :param model_to_read:
-    :param start_from_zero:
-    :param weight_decay:
-    :return:
+     A method for training the model.
+    :param model: chosen model object.
+    :param data_iter: the iterator for the data.
+    :param n_epochs: The number of epochs to train the data.
+    :param learning_rate: Chosen learning rate.
+    :param model_to_read: if there is a saved model provide it name here.
+    :param start_from_zero: boolean, True if not provided any model.
+    :param weight_decay: Chosen weight decay.
+    :return: None
     """
     if not start_from_zero:
         loaded_file = open(f'model_number_{model_to_read}.pickle', 'rb')
@@ -204,11 +204,11 @@ def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, s
 
 def evaluate(model, data_iterator, criterion):
     """
-
-    :param model:
-    :param data_iterator:
-    :param criterion:
-    :return:
+    An evaluation method.
+    :param model: The chosen model.
+    :param data_iterator: Iterator for the data.
+    :param criterion: loss function
+    :return: average of loss.
     """
     lost = list()
     for data in data_iterator:
@@ -222,13 +222,13 @@ def evaluate(model, data_iterator, criterion):
 
 def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
     """
-
-    :param train_set:
-    :param train_tags:
-    :param test_set:
-    :param test_tags:
-    :param model:
-    :param method:
+    An evaluation method for knn model.
+    :param train_set: data points for train set.
+    :param train_tags: labels for train set.
+    :param test_set: data points for test set.
+    :param test_tags:labels for test set.
+    :param model: the knn model object.
+    :param method: evaluation method string.
     :return:
     """
     model.train_model(train_set, train_tags)
@@ -260,10 +260,10 @@ def binary_accuracy(preds, y):
 
 def split_data_train_test(data, labels, test_size=0.2):
     """
-
-    :param data:
-    :param labels:
-    :param test_size:
+    A splitter for the data set.
+    :param data: data points.
+    :param labels: labels consist with data points.
+    :param test_size: float for size of the test from data.
     :return:
     """
     train_x, test_x, train_y, test_y = train_test_split(data, labels, test_size=test_size)
