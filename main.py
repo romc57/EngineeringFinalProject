@@ -13,9 +13,8 @@ parser.add_argument('--input', default=0, help='Path to image or video. Skip to 
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
 parser.add_argument('--display_height', default=920, type=int, help='Resize input to specific height.')
 parser.add_argument('--save', default=False, type=bool, help='Save the video output')
-parser.add_argument('--data_set_mode', default=True, type=bool, help='Mark true to create a dataset.')
+parser.add_argument('--data_set_mode', default=False, type=bool, help='Mark true to create a dataset.')
 parser.add_argument('--output_data', default=False, type=bool, help='Mark true to create a run_dir.')
-
 
 INSTRUCTIONS_COLOR = (0, 0, 0)
 COUNTER_COLOR = (0, 0, 0)
