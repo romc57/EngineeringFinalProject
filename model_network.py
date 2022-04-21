@@ -18,6 +18,7 @@ from torch.utils.data import DataLoader, TensorDataset, Dataset
 NUM_MODEL_NET = '0_3d_net'
 NUM_MODEL_KNN = 'multi_0_3d_knn'
 
+
 # -----------------------classes---------------------------------
 
 
@@ -25,6 +26,7 @@ class SimpleKNN:
     """
     The next class is a wrapper class for knn model of sklearn.
     """
+
     def __init__(self, num_neighbors, dim):
         """
         Constructor.
@@ -68,6 +70,7 @@ class LinearNeuralNet(nn.Module):
     """
     The next class in implementation of a linear neural network.
     """
+
     def __init__(self, dim):
         """
         Model constructor.
@@ -105,10 +108,38 @@ class LinearNeuralNet(nn.Module):
         return self.__dim
 
 
+class Feedforward(torch.nn.Module):
+    def __init__(self, input_size, hidden_size, hidden_size_2, num_of_classes=2):
+        super(Feedforward, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.hidden_size_2 = hidden_size_2
+
+        self.fc1 = torch.nn.Linear(self.input_size, self.hidden_size)
+        self.relu = torch.nn.ReLU()
+        self.fc3 = torch.nn.Linear(self.hidden_size_2, 1)
+        self.fc2 = torch.nn.Linear(self.hidden_size, self.hidden_size_2)
+        self.sigmoid = torch.nn.Sigmoid()
+
+    def forward(self, x):
+        flatten = torch.flatten(x)
+        hidden = self.fc1(flatten)
+        relu = self.relu(hidden)
+        hidden_2 = self.fc2(relu)
+        relu_2 = self.relu(hidden_2)
+        output = self.fc3(relu_2)
+        output = self.sigmoid(output)
+        return output
+
+    def predict(self, x):
+        self(x)
+
+
 class DataManager:
     """
     A data handler class.
     """
+
     def __init__(self, tensors, labels):
         """
         Constructor.
@@ -120,7 +151,7 @@ class DataManager:
             data.append((tensors[i], labels[i]))
         self.__data = data
 
-    def get_data_iterator(self, batch_size=2):
+    def get_data_iterator(self, batch_size=5):
         """
         A getter for data iterator.
         :param batch_size:
@@ -134,6 +165,7 @@ class MyIterableDataset(torch.utils.data.IterableDataset, ABC):
     """
     A class used to create a data iterator for our data.
     """
+
     def __init__(self, data):
         """
         Constructor.
