@@ -15,7 +15,7 @@ X = 0
 Y = 1
 Z = 2
 
-MULTI_LABELS = ['high_waste', 'knee_collapse', 'lifting_heels']
+MULTI_LABELS = ['high_waste', 'knee_collapse', 'lifting_heels', 'good']
 BINARY_LABELS = ['bad', 'good']
 
 BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee',

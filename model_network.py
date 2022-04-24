@@ -13,6 +13,8 @@ import tqdm
 import pickle
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
+import matplotlib.pyplot as plt
+from sklearn import metrics
 
 # Constants:
 NUM_MODEL_NET = '0_3d_net'
@@ -71,7 +73,7 @@ class LinearNeuralNet(nn.Module):
     The next class in implementation of a linear neural network.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, out_dim):
         """
         Model constructor.
         :param dim: flatten dim of the data.
@@ -80,7 +82,7 @@ class LinearNeuralNet(nn.Module):
         self.__dim = dim
         self.layers = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(dim, 1),
+            nn.Linear(dim, out_dim),
             nn.Sigmoid()
         )
 
@@ -117,7 +119,7 @@ class Feedforward(torch.nn.Module):
 
         self.fc1 = torch.nn.Linear(self.input_size, self.hidden_size)
         self.relu = torch.nn.ReLU()
-        self.fc3 = torch.nn.Linear(self.hidden_size_2, 1)
+        self.fc3 = torch.nn.Linear(self.hidden_size_2, num_of_classes)
         self.fc2 = torch.nn.Linear(self.hidden_size, self.hidden_size_2)
         self.sigmoid = torch.nn.Sigmoid()
 
@@ -198,7 +200,7 @@ def train_epoch(model, data_iterator, optimizer, criterion):
         input = input.float()
         optimizer.zero_grad()
         output = model(input)
-        lost_calc = criterion(output.reshape(output.shape[0]), label)
+        lost_calc = criterion(output, label)
         lost_calc.backward()
         optimizer.step()
         loss += lost_calc.item()
@@ -223,7 +225,7 @@ def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, s
         model = pickle.load(loaded_file)
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    loss_func = nn.L1Loss()
+    loss_func = nn.CrossEntropyLoss()
     loss_lst = list()
     for epoch in range(n_epochs):
         pbar = tqdm.tqdm(iterable=data_iter.get_data_iterator())
@@ -247,7 +249,7 @@ def evaluate(model, data_iterator, criterion):
         input, label = data
         input = input.float()
         output = model(input)
-        lost_calc = criterion(output.reshape(output.shape[0]), label)
+        lost_calc = criterion(output, label)
         lost.append(lost_calc.item())
     return np.mean(np.array(lost))
 
@@ -270,6 +272,14 @@ def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
         acc_train = np.sum(y_hat_train == train_tags) / len(train_tags)
         acc_test = np.sum(y_hat_test == test_tags) / len(test_tags)
         print(f'train accuracy = {acc_train}, test accuracy =  {acc_test}')
+        return y_hat_test, test_tags
+
+
+def calculate_accuracy(y_pred, y):
+    top_pred = y_pred.argmax(1, keepdim=True)
+    correct = top_pred.eq(y.view_as(top_pred)).sum()
+    acc = correct.float() / y.shape[0]
+    return acc
 
 
 def binary_accuracy(preds, y):
@@ -300,3 +310,13 @@ def split_data_train_test(data, labels, test_size=0.2):
     """
     train_x, test_x, train_y, test_y = train_test_split(data, labels, test_size=test_size)
     return train_x, train_y, test_x, test_y
+
+
+def plot_confusion_matrix(labels, pred_labels):
+
+    fig = plt.figure(figsize=(4, 4))
+    ax = fig.add_subplot(1, 1, 1)
+    cm = metrics.confusion_matrix(labels, pred_labels)
+    cm = metrics.ConfusionMatrixDisplay(cm, display_labels=range(4))
+    cm.plot(values_format='d', cmap='Blues', ax=ax)
+    plt.show()
