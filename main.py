@@ -7,7 +7,6 @@ import utils
 import mediapipe as mp
 from model_network import *
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', default=0, help='Path to image or video. Skip to capture frames from camera')
 parser.add_argument('--display_width', default=1280, type=int, help='Resize input to specific width.')
@@ -24,7 +23,6 @@ OFF_LINE_COLOR = (0, 0, 255)
 last_squat_predict = None
 predict_mistake = None
 
-
 args = parser.parse_args()  # Load arguments
 data_set_mode = args.data_set_mode  # Create mode for a data set
 output_data = args.output_data  # Flag to indicate if data should be outputed
@@ -38,7 +36,8 @@ else:
 if data_set_mode:
     data_types = ['good', 'high_waste', 'knee_collapse', 'lifting_heels']
     type_index = 0
-    sample_count = {'good': 30, 'high_waste': 10, 'knee_collapse': 10, 'lifting_heels': 10}  # How many samples should the system capture
+    sample_count = {'good': 30, 'high_waste': 10, 'knee_collapse': 10,
+                    'lifting_heels': 10}  # How many samples should the system capture
     user_body = Body(run_dir, data_types[0])  # Create a Body object
 else:
     user_body = Body(run_dir)
@@ -48,7 +47,6 @@ mpPose = mp.solutions.pose
 pose = mpPose.Pose()
 mpDraw = mp.solutions.drawing_utils
 model_net, model_knn, model_multi = utils.load_models([model_net_3_d, model_knn_2_d, model_knn_multi_2_d])
-
 
 cap = cv.VideoCapture(args.input if args.input else 0)
 output = None
@@ -82,7 +80,7 @@ def insert_instructions(frame, txt):
     :param frame: Frame to insert on
     :param txt: Instruction to insert
     """
-    cv.putText(frame, txt, (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, INSTRUCTIONS_COLOR,  2)
+    cv.putText(frame, txt, (10, 20), cv.FONT_HERSHEY_SIMPLEX, 0.5, INSTRUCTIONS_COLOR, 2)
 
 
 def insert_squat_count(frame):
@@ -157,7 +155,7 @@ def calibrate_mode(frame, points, results):
     elif not user_body.is_ready():
         calibrate_frames = calibrate_dur * fps
         insert_instructions(frame, 'Calibrating.. place your heels on the red line. frames left to start: '
-                            '{}'.format(calibrate_frames))
+                                   '{}'.format(calibrate_frames))
     elif user_body.is_ready() and calibrate_frames == 0:
         mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
         insert_instructions(frame, 'Finished calibrating! start squatting.')
@@ -239,9 +237,9 @@ def get_squat_predict():
     three_d = utils.convert_list_to_np(three_d)
     centered = utils.convert_list_to_np(centered)
     indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d)[0],
-                                      len(three_d))
+                                            len(three_d))
     indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
-                                      len(centered))
+                                            len(centered))
     data_knn = centered[indices_2d]
     data_net = three_d[indices_3d]
     predict_knn = model_knn.predict(data_knn.reshape(1, model_knn.get_dim()))
@@ -274,32 +272,32 @@ def data_set_creator(frame, points, results):
     return True
 
 
-while cv.waitKey(1) < 0:
-    hasFrame, frame = cap.read()
-    frame_counter += 1
-    if not hasFrame:
-        cv.waitKey()
-        break
-    points, results = get_points(frame)
-    if not points:
-        continue
-    if user_body.calibrate_mode:
-        calibrate_mode(frame, points, results)
-    elif user_body.sample_squat_mode:
-        sample_squat(frame, points, results)
-    else:
-        if data_set_mode:
-            if not data_set_creator(frame, points, results):
-                break
-            else:
-                continue
+if __name__ == '__main__':
+    while cv.waitKey(1) < 0:
+        hasFrame, frame = cap.read()
+        frame_counter += 1
+        if not hasFrame:
+            cv.waitKey()
+            break
+        points, results = get_points(frame)
+        if not points:
+            continue
+        if user_body.calibrate_mode:
+            calibrate_mode(frame, points, results)
+        elif user_body.sample_squat_mode:
+            sample_squat(frame, points, results)
         else:
-            run(frame, points, results)
-if output:
-    output.release()
-cap.release()
-cv.destroyAllWindows()
-if not data_set_mode and run_dir:
-    print('Outputting data...')
-    user_body.output_points()
-
+            if data_set_mode:
+                if not data_set_creator(frame, points, results):
+                    break
+                else:
+                    continue
+            else:
+                run(frame, points, results)
+    if output:
+        output.release()
+    cap.release()
+    cv.destroyAllWindows()
+    if not data_set_mode and run_dir:
+        print('Outputting data...')
+        user_body.output_points()
