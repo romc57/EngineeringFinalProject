@@ -16,7 +16,6 @@ def results_to_coordinates(results):
 
 
 def create_data_set(root_directory: str, folder_name: str, run_directory: str):
-    # TODO : run on directory and save frames. normalize and tag. save txt in target
     path = os.path.join(root_directory)
     for folder in os.listdir(path):
         root = os.path.join(root_directory, folder)
