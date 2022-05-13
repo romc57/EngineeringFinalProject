@@ -282,9 +282,10 @@ def get_standing_line(width, height, height_fraction, line_fraction):
     return f_point, s_point
 
 
-def get_data_set(directory, folder_name, multi=True):
+def get_data_set(directory, folder_name, multi_labels=MULTI_LABELS, binary_labels=BINARY_LABELS, multi=True):
     """
     Get a data set from a folder
+    :param multi_labels:
     :param directory: Path to dataset directory
     :param folder_name: Name of the containing folder
     :param multi: Should the dataset be multiclass or binary
@@ -293,9 +294,9 @@ def get_data_set(directory, folder_name, multi=True):
     output_data = list()
     output_labels = list()
     if multi:
-        folder_list = MULTI_LABELS
+        folder_list = multi_labels
     else:
-        folder_list = BINARY_LABELS
+        folder_list = binary_labels
     path = os.path.join(directory, folder_name)
     for i, folder in enumerate(folder_list):
         for file in os.listdir(os.path.join(path, folder)):
