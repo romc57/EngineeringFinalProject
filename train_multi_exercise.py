@@ -7,6 +7,7 @@ from model_network import *
 WIDTH = 1200
 HEIGHT = 800
 
+
 def results_to_coordinates(results):
     points = list()
     if results.pose_landmarks:
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     video_path = r"D:\projects_files\final project"
     # get_key_points(video_path)
     # create_data_set(video_path, 'data', r"D:\projects_files")
-    train_set, train_tags = utils.get_data_set( r"D:",  r"projects_files", [], ["push ups data", "squats data"], False)
+    train_set, train_tags = utils.get_data_set(r"D:", r"projects_files", [], ["push ups data", "squats data"], False)
     train_set = train_set[:1] + train_set[2:]
     train_tags = train_tags[:1] + train_tags[2:]
     normalize_data_set = utils.normalize_data_len(train_set)
