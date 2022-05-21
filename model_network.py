@@ -15,6 +15,7 @@ import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 import matplotlib.pyplot as plt
 from sklearn import metrics
+import utils
 
 # Constants:
 NUM_MODEL_NET = '0_3d_net'
@@ -137,6 +138,18 @@ class Feedforward(torch.nn.Module):
         self(x)
 
 
+class GetData(Dataset):
+    def __init__(self, root_dir: str, folder: str, multi: bool):
+        self.x, self.y = utils.get_data_set(root_dir, folder, multi=multi)
+        self.x = utils.normalize_data_len(self.x)
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        return [self.x[idx], self.y[idx]]
+
+
 class DataManager:
     """
     A data handler class.
@@ -159,7 +172,7 @@ class DataManager:
         :param batch_size:
         :return: iterator.
         """
-        data_loader = torch.utils.data.DataLoader(MyIterableDataset(self.__data), batch_size=batch_size)
+        data_loader = torch.utils.data.DataLoader(MyIterableDataset(self.__data), batch_size=1)
         return data_loader
 
 
@@ -198,6 +211,7 @@ def train_epoch(model, data_iterator, optimizer, criterion):
     for i, data in enumerate(data_iterator):
         input, label = data
         input = input.float()
+        label = label.float()
         optimizer.zero_grad()
         output = model(input)
         lost_calc = criterion(output, label)
@@ -228,7 +242,7 @@ def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, s
     loss_func = nn.CrossEntropyLoss()
     loss_lst = list()
     for epoch in range(n_epochs):
-        pbar = tqdm.tqdm(iterable=data_iter.get_data_iterator())
+        pbar = tqdm.tqdm(iterable=data_iter)
         loss, model = train_epoch(model, pbar, optimizer, loss_func)
         loss_lst.append(loss)
     model_file = open(f'model_number_{NUM_MODEL_NET}.pickle', 'wb')
@@ -320,3 +334,69 @@ def plot_confusion_matrix(labels, pred_labels):
     cm = metrics.ConfusionMatrixDisplay(cm, display_labels=range(4))
     cm.plot(values_format='d', cmap='Blues', ax=ax)
     plt.show()
+
+
+def train_feed_forward(num_epochs, train_loader, size, optimizer, model, criterion, test_loader):
+    iter = 0
+    for epoch in range(num_epochs):
+        for i, (images, labels) in enumerate(train_loader):
+            # Load images with gradient accumulation capabilities
+            images = images.requires_grad_()
+            images, labels = images.double(), labels.double()
+            # images = images.double()
+            labels = torch.reshape(labels, (-1,))
+            # Clear gradients w.r.t. parameters
+            optimizer.zero_grad()
+
+            # Forward pass to get output/logits
+            outputs = model(images.double())
+
+            # Calculate Loss: softmax --> cross entropy loss
+            # print(outputs.shape, labels.shape)
+            loss = criterion(outputs, labels)
+
+            # Getting gradients w.r.t. parameters
+            loss.backward()
+
+            # Updating parameters
+            optimizer.step()
+
+            iter += 1
+
+            if iter % 500 == 0:
+                # Calculate Accuracy
+                correct = 0
+                total = 0
+                # Iterate through test dataset
+                for images, labels in test_loader:
+                    # Load images with gradient accumulation capabilities
+                    images = images.requires_grad_()
+
+                    # Forward pass only to get logits/output
+                    outputs = model(images)
+
+                    # Get predictions from the maximum value
+                    predicted = torch.round(outputs)
+
+                    # Total number of labels
+                    total += labels.size(0)
+
+                    # Total correct predictions
+                    # correct += (predicted == labels).sum()
+                    correct += check_equal(predicted, labels)
+
+                accuracy = 100 * correct / total
+
+                # Print Loss
+                print('Iteration: {}. Loss: {}. Accuracy: {}'.format(iter, loss.item(), accuracy))
+
+
+def check_equal(prediction, label):
+    count = 0
+    for i in range(len(prediction)):
+        if prediction[i].item == label[0][i].item:
+            count += 1
+    if count == len(prediction):
+        return 1
+    else:
+        return 0

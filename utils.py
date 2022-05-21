@@ -6,6 +6,7 @@ import os
 import random
 import pickle
 import copy
+import torch
 
 """
 Utils file for common functions along the system
@@ -302,7 +303,9 @@ def get_data_set(directory, folder_name, multi_labels=MULTI_LABELS, binary_label
         for file in os.listdir(os.path.join(path, folder)):
             curr_data = load_txt_point(path, file, folder)
             output_data.append(curr_data)
-            output_labels.append(i)
+            label = [0] * len(folder_list)
+            label[i] = 1
+            output_labels.append(torch.tensor(label))
     return output_data, output_labels
 
 
@@ -315,9 +318,9 @@ def get_data_set_multi(directory, folder_name):
             curr_data = load_txt_point(path, file, folder)
             output_data.append(curr_data)
             if folder == 'bad':
-                output_labels.append(0)
+                output_labels.append((1, 0))
             elif folder == 'good':
-                output_labels.append(1)
+                output_labels.append((0, 1))
     return output_data, output_labels
 
 
