@@ -12,6 +12,7 @@ TWO_DIM = r'centered_points'
 APP_TRAINING = r'D:\projects_files\final project'
 FOLDER = r'LabeledSquatPose'
 
+
 def embed_data(dataset, embeder):
     out_dataset = []
     for X in dataset:
@@ -37,6 +38,7 @@ if __name__ == '__main__':
     train_x_knn = train_x.reshape(len(train_x), -1)
     test_x_knn = test_x.reshape(len(test_x), -1)
     for i in range(1, 11):
+    # i = 3
         model = SimpleKNN(i, dim)
         print(f'KNN with {i} neighbors:')
         y_hat, test_y = evaluate_knn(train_x_knn, train_y, test_x_knn, test_y, model, 'accuracy')

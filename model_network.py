@@ -296,7 +296,7 @@ def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
         acc_train = np.sum(y_hat_train == train_tags) / len(train_tags)
         acc_test = np.sum(y_hat_test == test_tags) / len(test_tags)
         print(f'train accuracy = {acc_train}, test accuracy =  {acc_test}')
-        return y_hat_test, test_tags
+        return y_hat_test, test_tags,
 
 
 def calculate_accuracy(y_pred, y):

@@ -354,17 +354,17 @@ def main():
                                         batch_size=bat_size, shuffle=True)
 
     # 2. create network
-    net = Net2().float().to(device)
+    net = Net().float().to(device)
     print(net.type(torch.float64))
     # 3. train model
-    max_epochs = 3000
-    ep_log_interval = 100
+    max_epochs = 200
+    ep_log_interval = 10
     lrn_rate = 0.001
 
     # -----------------------------------------------------------
 
     loss_func = T.nn.CrossEntropyLoss()  # apply log-softmax()
-    optimizer = T.optim.Adam(net.parameters(), lr=lrn_rate)
+    optimizer = T.optim.SGD(net.parameters(), lr=lrn_rate)
 
     print("\nbat_size = %3d " % bat_size)
     print("loss = " + str(loss_func))
