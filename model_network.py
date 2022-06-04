@@ -15,6 +15,7 @@ import numpy as np
 from torch.utils.data import DataLoader, TensorDataset, Dataset
 import matplotlib.pyplot as plt
 from sklearn import metrics
+from torch.autograd import Variable
 
 # Constants:
 NUM_MODEL_NET = '0_3d_net'
@@ -110,6 +111,26 @@ class LinearNeuralNet(nn.Module):
         return self.__dim
 
 
+class Net(nn.Module):
+    def __init__(self, dim):
+        super(Net, self).__init__()
+        self.hid1 = nn.Linear(dim, 50)  # 6-(10-10)-3
+        self.hid2 = nn.Linear(50, 30)
+        self.oupt = nn.Linear(30, 5)
+
+        nn.init.xavier_uniform_(self.hid1.weight)
+        nn.init.zeros_(self.hid1.bias)
+        nn.init.xavier_uniform_(self.hid2.weight)
+        nn.init.zeros_(self.hid2.bias)
+        nn.init.xavier_uniform_(self.oupt.weight)
+        nn.init.zeros_(self.oupt.bias)
+
+    def forward(self, x):
+        z = torch.tanh(self.hid1(x))
+        z = torch.tanh(self.hid2(z))
+        z = self.oupt(z)  # no softmax: CrossEntropyLoss()
+        return z
+
 class Feedforward(torch.nn.Module):
     def __init__(self, input_size, hidden_size, hidden_size_2, num_of_classes=2):
         super(Feedforward, self).__init__()
@@ -200,10 +221,11 @@ def train_epoch(model, data_iterator, optimizer, criterion):
         input = input.float()
         optimizer.zero_grad()
         output = model(input)
-        lost_calc = criterion(output, label)
-        lost_calc.backward()
+        loss_calc = criterion(torch.argmax(output).float(), label)
+        loss_calc = Variable(loss_calc.data, requires_grad=True)
+        loss_calc.backward()
         optimizer.step()
-        loss += lost_calc.item()
+        loss += loss_calc.item()
         data_iterator.set_postfix(lost=loss / (i + 1))
     return loss / (i + 1), model
 
@@ -226,6 +248,7 @@ def train_model(model, data_iter, n_epochs, learning_rate, model_to_read=None, s
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     loss_func = nn.CrossEntropyLoss()
+    # loss_func = nn.L1Loss()
     loss_lst = list()
     for epoch in range(n_epochs):
         pbar = tqdm.tqdm(iterable=data_iter.get_data_iterator())
@@ -249,6 +272,7 @@ def evaluate(model, data_iterator, criterion):
         input, label = data
         input = input.float()
         output = model(input)
+        output = torch.argmax(output)
         lost_calc = criterion(output, label)
         lost.append(lost_calc.item())
     return np.mean(np.array(lost))
@@ -276,10 +300,7 @@ def evaluate_knn(train_set, train_tags, test_set, test_tags, model, method):
 
 
 def calculate_accuracy(y_pred, y):
-    top_pred = y_pred.argmax(1, keepdim=True)
-    correct = top_pred.eq(y.view_as(top_pred)).sum()
-    acc = correct.float() / y.shape[0]
-    return acc
+    return np.mean(y_pred == y)
 
 
 def binary_accuracy(preds, y):

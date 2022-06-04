@@ -224,7 +224,7 @@ def run(frame, points, results):
 
 def get_knn_squat_predict(knn, centered):
     centered = utils.convert_list_to_np(centered)
-    indices_2d = utils.find_slicing_indices(int(knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
+    indices_2d = utils.find_slicing_indices(int(knn.get_dim() / 30), utils.find_max_y_index(centered)[0],
                                             len(centered))
     data_knn = centered[indices_2d]
     predict_knn = knn.predict(data_knn.reshape(1, knn.get_dim()))
@@ -236,9 +236,9 @@ def get_squat_predict():
     centered, three_d = user_body.get_squat()
     three_d = utils.convert_list_to_np(three_d)
     centered = utils.convert_list_to_np(centered)
-    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_min_y_index(three_d)[0],
+    indices_3d = utils.find_slicing_indices(int(model_net.get_dim() / 45), utils.find_max_y_index(three_d)[0],
                                             len(three_d))
-    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_min_y_index(centered)[0],
+    indices_2d = utils.find_slicing_indices(int(model_knn.get_dim() / 30), utils.find_max_y_index(centered)[0],
                                             len(centered))
     data_knn = centered[indices_2d]
     data_net = three_d[indices_3d]

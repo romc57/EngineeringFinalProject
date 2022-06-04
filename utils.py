@@ -7,6 +7,8 @@ import random
 import pickle
 import copy
 
+import torch
+
 """
 Utils file for common functions along the system
 """
@@ -17,6 +19,8 @@ Z = 2
 
 MULTI_LABELS = ['high_waste', 'knee_collapse', 'lifting_heels', 'good']
 BINARY_LABELS = ['bad', 'good']
+APP_MULTI = ["butFirst", "core", "good", "headStraight", "kissingKnees", "liftingHeels", "noRep", "straightBack",
+             "unEvenStance", "unEvenWeightBearing"]
 
 BODY_PARTS_LIST_CLASS = ['Nose', 'REye_c', 'LEye_c', 'RShoulder', 'LShoulder', 'RHip', 'LHip', 'RKnee', 'LKnee',
                          'RAnkle', 'LAnkle', 'RHeel', 'LHeel', 'RTows', 'LTows']  # Relevant body parts for the system
@@ -244,6 +248,7 @@ def load_txt_point(run_dir, file_name, dir_name):
         text = reader.read()
         text = text.replace('\n', ',')
         points = eval(text)
+        # print(points.shape)
     return points
 
 
@@ -282,15 +287,21 @@ def get_standing_line(width, height, height_fraction, line_fraction):
     return f_point, s_point
 
 
-def get_data_set(directory, folder_name, multi_labels=MULTI_LABELS, binary_labels=BINARY_LABELS, multi=True):
+def get_data_set(directory, folder_name, multi_labels=None, binary_labels=None, multi=True):
     """
     Get a data set from a folder
+    :param binary_labels:
     :param multi_labels:
     :param directory: Path to dataset directory
     :param folder_name: Name of the containing folder
     :param multi: Should the dataset be multiclass or binary
     :return: The dataset and labels
     """
+    files_set = set()
+    if binary_labels is None:
+        binary_labels = BINARY_LABELS
+    if multi_labels is None:
+        multi_labels = APP_MULTI
     output_data = list()
     output_labels = list()
     if multi:
@@ -300,9 +311,12 @@ def get_data_set(directory, folder_name, multi_labels=MULTI_LABELS, binary_label
     path = os.path.join(directory, folder_name)
     for i, folder in enumerate(folder_list):
         for file in os.listdir(os.path.join(path, folder)):
-            curr_data = load_txt_point(path, file, folder)
-            output_data.append(curr_data)
-            output_labels.append(i)
+            if file not in files_set:
+                curr_data = load_txt_point(path, file, folder)
+                if len(curr_data) >= 20:
+                    output_data.append(curr_data)
+                    output_labels.append(i)
+            files_set.add(file)
     return output_data, output_labels
 
 
@@ -330,47 +344,54 @@ def find_min_len(data_set):
     min_len = 1000
     for video_frames in data_set:
         curr_len = len(video_frames)
+        # print(f"len is {curr_len}")
         if curr_len < min_len:
             min_len = curr_len
     return min_len
 
 
-def find_min_y_index(frames):
+def find_max_y_index(frames):
     head_y_position = frames[:, 0, 1]
-    return np.where(head_y_position == np.amin(head_y_position))[0]
+    return np.argmax(head_y_position[len(head_y_position)//2:])
 
 
 def convert_list_to_np(list_obj):
     return np.array(list_obj)
 
 
-def find_slicing_indices(wanted_len, min_move, frames_len):
+def find_slicing_indices(wanted_len, max_move, frames_len):
     if wanted_len % 2 == 0:
         move_down_size = np.floor(wanted_len / 2).astype(np.int64)
         move_up_size = move_down_size
     else:
         move_up_size = np.floor(wanted_len / 2).astype(np.int64)
         move_down_size = wanted_len - move_up_size
-    indices_down = np.linspace(0, min_move, num=move_down_size).astype(np.int64)
-    indices_up = np.linspace(min_move + 1, frames_len - 1, num=move_up_size).astype(np.int64)
+    indices_down = np.linspace(0, min(max_move, frames_len - 1), num=move_down_size).astype(np.int64)
+    indices_up = np.linspace(min(max_move + 1, frames_len - 1), frames_len - 1, num=move_up_size).astype(np.int64)
     return np.concatenate([indices_down, indices_up])
 
 
-def normalize_data_len(data_set):
-    output_data = list()
+def normalize_data_len(data_set, labels):
+    output_data = []
+    output_labels = []
     min_len = find_min_len(data_set)
-    for video_frames in data_set:
+    index = 0
+    for video_frames, label in zip(data_set, labels):
         curr_len = len(video_frames)
         video_frames = np.array(video_frames)
+        # print(index)
         if curr_len == min_len:
             output_data.append(video_frames)
+            output_labels.append(label)
             continue
-        if min_len < curr_len:
-            min_index = find_min_y_index(video_frames)
-            slicing_indices = find_slicing_indices(min_len, min_index[0], curr_len)
+        if min_len < curr_len and len(video_frames.shape) == 3:
+            max_index = find_max_y_index(video_frames)
+            slicing_indices = find_slicing_indices(min_len, max_index, curr_len)
             video_frames_new = video_frames[slicing_indices]
             output_data.append(video_frames_new)
-    return output_data
+            output_labels.append(label)
+    index += 1
+    return torch.tensor(output_data, dtype=torch.float64), torch.tensor(output_labels,  dtype=torch.int64)
 
 
 def load_models(model_paths):
